@@ -221,6 +221,7 @@ python tests/run_all.py realm      # 只跑名字里含 realm 的
 ```
 
 - 273 个套件：205 个 Python + 68 个 JS；JS 需要 PATH 上有 `node`，缺失时会跳过并提示。
+- 类型检查：`python -m mypy`（配置见 `mypy.ini`，按 Python 3.9 口径检查 36 个 `wb_*.py`；本地可用 `uvx --python 3.12 'mypy==1.13.0'`）。CI 里有独立 `typecheck` job，测试矩阵不变。
 - `tests/_mobile_check.py` 是独立的 Playwright 手机/桌面布局检查器（需自行安装 Playwright），按需手动运行，不在上面的套件集里。
 - CI（`.github/workflows/tests.yml`）跑同一条命令：Ubuntu 上 python 3.9 与 3.12（3.9 是本项目声称的最低版本），Windows 上 python 3.12；推送 `v*` tag 时额外断言 **tag == 源码版本**（`-ci` 演练 tag 豁免）。
 
@@ -230,6 +231,7 @@ python tests/run_all.py realm      # 只跑名字里含 realm 的
 
 ### Unreleased
 
+- **引入 mypy 类型检查门禁**：`mypy.ini` 按 Python 3.9 口径检查 36 个 `wb_*.py`，CI 新增 `typecheck` job；顺带清掉重复定义的 `_acquire_key_slot` / `_release_key_slot` 与重复的 `NON_ACCOUNT_FILES`，修掉 `exc` 越界赋值等静态问题，运行时行为不变。
 - **修复账号昵称的存储型 XSS**：用量看板的账号 / 模型 / API Key 表格在拼 `innerHTML` 前对服务端字段做 HTML 转义；导入带 HTML 的昵称或 Key 名不再执行脚本，正常名称显示不变。
 - **访问日志不再明文记录 URL 查询串中的密钥**：`?key=`、`?api_key=`、`?api-key=`（大小写不敏感）的值在写入 stderr 与日志库前替换为 `***`，路径和其它参数不变；看板心跳静默规则不变。
 - **Docker 默认只发布到宿主机回环**：仓库自带的 `docker-compose.yml` / `docker-compose.build.yml` 把 8788 绑到 `127.0.0.1`；需要局域网访问时改成 `"8788:8788"` 并设置面板密码。容器内仍监听 `0.0.0.0`。

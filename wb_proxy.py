@@ -328,10 +328,10 @@ _MEDIA_INFLIGHT_LOCK = threading.Lock()
 _MEDIA_RATE_LOCK = threading.Lock()
 #: (key_id, 分钟桶) → 本分钟内已发的生图次数。只在内存里：重启清零是可接受的，
 #: 它是一道防误循环的闸，不是账本（账本在 usage.jsonl）。
-_MEDIA_RATE = {}
+_MEDIA_RATE: dict = {}
 #: `/v3/config` 的**原始** payload（含 media tags），按区缓存。与 _models_cache 分开：
 #: 后者已被投影成聊天目录，媒体条目在投影里丢了（selectCliModels 不认它们）。
-_catalog_raw = {}
+_catalog_raw: dict = {}
 
 #: 换号可能就过了的失败：都是「这个账号此刻不行」而不是「这个请求不对」。
 MEDIA_RETRYABLE = frozenset(("AUTH", "RATE_LIMIT", "NO_CREDIT", "UPSTREAM"))
@@ -408,7 +408,7 @@ def media_rate_allow(key_id, per_minute, now=None):
 
 #: (Key, 本地日期) → 当天已花的媒体积分。**只在内存里**：重启清零可接受，
 #: 与「每分钟次数」同一取舍——它是防失控的闸，账本在 usage.jsonl。
-_MEDIA_KEY_SPEND = {}
+_MEDIA_KEY_SPEND: dict = {}
 _MEDIA_KEY_SPEND_LOCK = threading.Lock()
 
 
@@ -1111,7 +1111,7 @@ def resize_chat_slots(ready_accounts):
     log("chat slots : %d (one per ready account; WB_MAX_CONCURRENT_CHAT=auto)"
         % wanted)
     return wanted
-_login_attempts = {}  # ip -> list of timestamp
+_login_attempts: dict = {}  # ip -> list of timestamp
 def _prune_login_attempts(now=None, window=60):
     """Drop stale per-IP entries so the dict cannot grow without bound.
     Caller must hold _login_lock.
@@ -1211,7 +1211,7 @@ _models_cache = {"intl": {"at": 0.0, "data": None}, "cn": {"at": 0.0, "data": No
 #: source 取值见 catalog_meta()；fetched_at 是网关拿到这批数据的时刻；
 #: file_mtime 是桌面缓存文件自己的写入时刻（仅配置文件来源，可能远早于
 #: fetched_at——那正是「清单是不是新鲜」的证据）。与 _models_cache 同批更新。
-_catalog_meta = {}
+_catalog_meta: dict = {}
 #: 目录落盘存档：每次成功从上游 /v3/config 拉到清单就写一份响应体副本，纯留档
 #: （网关自己不读它）。与 usage 一样运行时产生、在 .gitignore 里，不参与提交
 #: 与更新；覆盖目录用 WB_PROXY_CATALOG_DIR。
@@ -1793,7 +1793,7 @@ def _perf_block(vals):
         "max": max(vals),
         "samples": count,
     }
-_perf_cache = {}
+_perf_cache: dict = {}
 _perf_lock = threading.Lock()
 
 
@@ -2573,7 +2573,7 @@ def _perf_stats_incremental(key, sample, realm, since, until):
         return _perf_stats_uncached(sample, realm, since=since, until=until)
 
 
-_snap_cache = {}
+_snap_cache: dict = {}
 _snap_lock = threading.Lock()
 # The dashboard polls every 5s. A TTL shorter than the poll interval makes
 # every other poll do the full uncached scan; 15s means at most one rebuild
@@ -2982,7 +2982,7 @@ _remaining_cache_lock = threading.Lock()
 # estimate-daily.json 的解析缓存：单键元组一次赋值（(路径, mtime_ns, size),
 # days），读侧不加锁也不会看到半份缓存；写盘路径主动换掉它，外部改动靠 stat
 # 变化发现。路径也在戳里：--usage-dir 换目录后不会被旧目录的戳骗过去。
-_estimate_daily_cache = {"entry": ((None, None, None), {})}
+_estimate_daily_cache: dict = {"entry": ((None, None, None), {})}
 # 文件读-改-写串行锁：只在 _estimate_daily_sync() 里拿一次，且永远在状态锁
 # 之外（归档计算在状态锁内、写盘在锁外，同 checkpoint 的理由）。
 _estimate_daily_lock = threading.Lock()
@@ -4159,8 +4159,8 @@ def _fold_cost(bucket, cost, model):
 # What wb_pricing hands back while its file is missing. Without these, every
 # call would get a fresh empty dict, the identity test below would never
 # match, and a deployment with no price files would rescan on every refresh.
-_EMPTY_POLICIES = {}
-_EMPTY_TIMELINE = []
+_EMPTY_POLICIES: dict = {}
+_EMPTY_TIMELINE: list = []
 
 
 def _usage_log_key(path=None):
@@ -4374,7 +4374,7 @@ def _timeline_row_at(row):
 # 时间线投影摘要的记忆：值是一个元组 (时间线对象, 参数键, 摘要)，一次 get 拿全
 # （与 _object_digest 的记忆同一个写法）——两个状态锁下的线程同时算也不会读到
 # 拼起来的值；元组里握着时间线对象，身份不会被回收复用。
-_pricing_timeline_memo = {}
+_pricing_timeline_memo: dict = {}
 
 
 def _pricing_timeline_digest(timeline, record):
@@ -4815,8 +4815,8 @@ def _row_memo_env_cap(name, default):
 _ROW_MEMO_MAX = _row_memo_env_cap("WB_ROW_MEMO_MAX", _ROW_MEMO_MAX)
 _ROW_COST_MEMO_MAX = _row_memo_env_cap("WB_ROW_COST_MEMO_MAX", _ROW_COST_MEMO_MAX)
 
-_row_day_memo = {}          # at -> "YYYY-MM-DD"
-_row_cost_memo = {}         # (model, cost_policy, at, pt, ct, comp) -> (价表代次, 定价结果)
+_row_day_memo: dict = {}          # at -> "YYYY-MM-DD"
+_row_cost_memo: dict = {}         # (model, cost_policy, at, pt, ct, comp) -> (价表代次, 定价结果)
 _row_cost_gen = None        # 定价表当前代次（_pricing_inputs() 的元组）
 _row_memo_tz = time.tzname  # 日键表绑在哪个时区上（见 _row_memo_tz_changed）
 
@@ -5018,7 +5018,7 @@ def _fold_usage_snapshot(row, snap, r, since, until, pricing_on=None, also=None,
                 accounts[acct_id] = accounts.get(acct_id, 0) + 1
 
 
-_usage_snap_state = {}
+_usage_snap_state: dict = {}
 _usage_snap_state_lock = threading.Lock()
 
 
@@ -5450,7 +5450,7 @@ def _tail_lines(path, max_lines, chunk=256 * 1024):
     return lines
 
 
-_count_cache = {}
+_count_cache: dict = {}
 _count_lock = threading.Lock()
 # The count only feeds the "N records" label. The poll interval is 5s, so a
 # TTL of the same length would miss on nearly every poll; 30s turns a full
@@ -5465,10 +5465,10 @@ _COUNT_TTL = float(os.environ.get("WB_COUNT_TTL", 30))
 # ——一次扫描同时维护总数与每个 realm 的计数，任何 realm 的查询都复用同一
 # 条进度，不再各自全量扫一遍。
 _count_state_lock = threading.Lock()
-_count_state = {"offset": 0, "key": None, "tail": b"", "n": 0, "n_realm": {}}
+_count_state: dict = {"offset": 0, "key": None, "tail": b"", "n": 0, "n_realm": {}}
 
 
-_series_cache = {}
+_series_cache: dict = {}
 _series_lock = threading.Lock()
 
 
@@ -6075,7 +6075,7 @@ _recent_index_lock = threading.Lock()
 #                      recent 口径按段存，供定位）；
 #   segs           —— [offset, rows, <row_counts 各列>]，累计值；
 #   wrote_size/at  —— 写盘节流（记「尝试」而非成功，失败也退避）。
-_recent_index_state = {
+_recent_index_state: dict = {
     "stamp": None, "usable": False, "giveup": False, "giveup_key": None,
     "key": None, "size": 0, "tail": b"", "realm_map": None, "legacy": False,
     "realms": [], "counts": {}, "row_counts": {}, "lines": 0, "rows": 0,
@@ -7111,7 +7111,7 @@ def credit_grants(now=None):
 # 先清掉它，所以"刚点完执行却看到旧状态"不会发生。TTL 可用 WB_TASKS_CACHE_TTL 调，
 # 设 0 即关闭缓存、回到每次直连上游。
 TASKS_CACHE_TTL = float(os.environ.get("WB_TASKS_CACHE_TTL") or "20")
-_tasks_cache = {}
+_tasks_cache: dict = {}
 _tasks_cache_lock = threading.Lock()
 
 def invalidate_tasks_cache():
@@ -7384,7 +7384,7 @@ def _usage_by_account_uncached():
     for item in out:
         item["models"] = sorted(item["models"].items(), key=lambda kv: -kv[1])[:5]
     return out
-_analytics_cache = {}
+_analytics_cache: dict = {}
 _analytics_lock = threading.Lock()
 
 
@@ -7643,7 +7643,7 @@ def _fold_usage_analytics(row, realm, maps, half, pricing_on=None, also=None,
         _bump_analytics_models(km[models_key], m_id, vals, is_err, cost_cny)
 
 
-_analytics_state = {}
+_analytics_state: dict = {}
 _analytics_state_lock = threading.Lock()
 
 
@@ -8932,7 +8932,7 @@ def _scan_usage_analytics_window_hours(realm, since, until, stop_at=None,
 # （不做跨桶相加），所以连浮点求和都是逐位一致的——不像 snapshot/analytics
 # 的窗口半需要把日桶相加。
 # ---------------------------------------------------------------------------
-_series_state = {}
+_series_state: dict = {}
 _series_state_lock = threading.Lock()
 # credit 历史只保留最近这么多条（整段扫描返回的也是窗口内的前 50 条）。
 _SERIES_CREDITS_KEEP = 50
@@ -9664,7 +9664,7 @@ _usage_cache_write_lock = threading.Lock()
 # 坏文件、只读文件系统都不该让每次刷新都去解析一遍。只解析调用方真正要的
 # 那一类，这正是拆文件的意义（只跑 /usage 的进程不解析 remaining）。
 # 升级前的单文件（v3）也只读一次，作为某一类还没有自己文件时的回退来源。
-_usage_cache_kind_cache = {}
+_usage_cache_kind_cache: dict = {}
 _USAGE_CACHE_LEGACY_UNREAD = object()
 _usage_cache_legacy_data = _USAGE_CACHE_LEGACY_UNREAD
 # 写盘节流状态，全部由 _usage_cache_lock 保护：
@@ -9675,8 +9675,8 @@ _usage_cache_legacy_data = _USAGE_CACHE_LEGACY_UNREAD
 # 按「类」记账而不是记一个总数：某类状态第一次折叠（或中途重扫）时 offset
 # 从 0 跳到文件尾，这一类要尽快落盘，而刚采用过 checkpoint 的类不能被别的
 # 类的推进带着白写一遍。v4 起写盘也按类分开：只重写「有推进的那一类」。
-_usage_cache_progress = {}
-_usage_cache_checkpointed = {}
+_usage_cache_progress: dict = {}
+_usage_cache_checkpointed: dict = {}
 _usage_cache_last_attempt = time.time()
 
 
@@ -9789,7 +9789,7 @@ def _usage_cache_read_legacy_file():
     return data
 
 
-_usage_cache_digest_memo = {}
+_usage_cache_digest_memo: dict = {}
 
 
 def _object_digest(obj):
@@ -11287,7 +11287,7 @@ def prompt_fingerprint(messages):
     except Exception:
         return {}
 
-LOG_BUFFER = deque(maxlen=2000)
+LOG_BUFFER: deque = deque(maxlen=2000)
 _LOG_LOCK = threading.Lock()
 _LOG_COUNTER = 0
 
@@ -11493,7 +11493,7 @@ def add_log_entry(msg, level=None, tag=None):
 # counter surfaced through the panel log buffer) instead of wedging every endpoint.
 # ---------------------------------------------------------------------------
 _LOG_QUEUE_MAX = 2000
-_LOG_QUEUE = queue.Queue(maxsize=_LOG_QUEUE_MAX)
+_LOG_QUEUE: queue.Queue = queue.Queue(maxsize=_LOG_QUEUE_MAX)
 _LOG_WRITER = None
 _LOG_WRITER_LOCK = threading.Lock()
 _LOG_DROPPED = 0
@@ -11822,7 +11822,7 @@ def merge_catalog(primary, realm=None, extras=False):
     return out
 _catalog_lock = threading.Lock()
 
-_catalog_fallback_log = {}
+_catalog_fallback_log: dict = {}
 def note_bundled_reasoning(realm, live, entries):
     """Say once when a model's reasoning controls come from the bundled table.
 
@@ -12332,7 +12332,7 @@ def fetch_remote_product_config(realm):
 #: 再拦一层误连点，别让面板把 /v3/config 点成高频请求——上游有 WAF，连接被丢
 #: 是常态，节制本身就是不触发风控的一部分。
 CATALOG_REFRESH_COOLDOWN = 30.0
-_catalog_refresh_at = {}
+_catalog_refresh_at: dict = {}
 
 
 def refresh_catalog(realm):
@@ -13983,7 +13983,7 @@ def translate_max_completion_tokens(obj):
 # ---------------------------------------------------------------------------
 
 # 允许放行的模型（你要用的）
-ALLOWED_MODELS = {
+ALLOWED_MODELS: dict = {
     # 预设不封锁任何模型；填入模型 id 即可只放行这些
 }
 
@@ -13994,7 +13994,7 @@ ALLOWED_PREFIXES = ()
 BANNED_SUBSTRING = ""
 
 # 额外封锁的内部模型（不在 gpt- 前缀内，但也会烧点）
-EXTRA_BANNED = set()
+EXTRA_BANNED: set = set()
 
 
 def is_model_banned(model):
@@ -14768,7 +14768,7 @@ def gateway_hint(status, message):
 # ---------------------------------------------------------------------------
 
 MAX_PRODUCT_SWITCHES = 4
-_SWITCH_LOG = {}
+_SWITCH_LOG: dict = {}
 
 # --------------------------------------------------- 账号级并发上限（可选）
 #
@@ -14781,7 +14781,7 @@ _SWITCH_LOG = {}
 # 这样两个会话会自然落到两个账号上，各自保留自己的前缀缓存。
 #
 # 默认 0 = 不限，派发行为与上游一字不差（见 wb_settings.account_max_concurrent）。
-_ACCOUNT_INFLIGHT = {}
+_ACCOUNT_INFLIGHT: dict = {}
 _ACCOUNT_INFLIGHT_LOCK = threading.Lock()
 
 
@@ -15078,7 +15078,7 @@ def read_http_error(exc, limit=600):
 # 摘要不含任何提示词文本；full 会写明文，用来和另一台机器 / 另一个客户端做
 # 逐字节对比。两种模式都不写 Authorization、API Key、Cookie 或设备 token。
 DUMP_11_128_DIR = "11-128-dumps"
-_DUMP_11_128_SEEN = deque()
+_DUMP_11_128_SEEN: deque = deque()
 _DUMP_11_128_SEEN_MAX = 64
 _DUMP_11_128_LOCK = threading.Lock()
 _DUMP_11_128_SECRET_PARTS = (
@@ -15628,8 +15628,8 @@ RESTRICTION_WAVE_WINDOW = _env_number("WB_RESTRICTION_WAVE_WINDOW", 900.0)
 RESTRICTION_HOLD_SECONDS = _env_number("WB_RESTRICTION_HOLD_SECONDS", 1800.0)
 
 _RESTRICTION_LOCK = threading.Lock()
-_RESTRICTION_EVENTS = {}   # realm -> {uid: epoch}（窗口内被限制的账号）
-_RESTRICTION_HOLD = {}     # realm -> 暂停到哪个 epoch
+_RESTRICTION_EVENTS: dict = {}   # realm -> {uid: epoch}（窗口内被限制的账号）
+_RESTRICTION_HOLD: dict = {}     # realm -> 暂停到哪个 epoch
 
 
 def reset_restriction_state():
@@ -16613,16 +16613,16 @@ def open_upstream(payload, session_key=None, target_realm=None, prebuilt_body=No
         except Exception:
             pass
         if wb_accounts.is_tls_verify_error(last_error):
-            exc = wb_accounts.TLSVerifyError(
+            wrapped = wb_accounts.TLSVerifyError(
                 wb_accounts.tls_verify_hint(last_error))
-            exc.account_uid = last_uid
-            raise exc
+            wrapped.account_uid = last_uid
+            raise wrapped
         if looks_like_local_network(last_error):
             # 最后一笔就是本机网络的问题：按「本机网络不可用」上报，不要报成
             # 「上游不可达」——后者会让人去查上游/账号，而真正要查的是本机。
-            exc = LocalNetworkError(exc_detail(last_error))
-            exc.account_uid = last_uid
-            raise exc
+            wrapped = LocalNetworkError(exc_detail(last_error))
+            wrapped.account_uid = last_uid
+            raise wrapped
         if last_429 is not None:
             # `retry_after_seconds` 是全池**最短**的冷却窗口——客户端真正能再次
             # 得到服务的时刻；`last_429_detail` 却只是**最后一个**失败账号的
@@ -16630,14 +16630,14 @@ def open_upstream(payload, session_key=None, target_realm=None, prebuilt_body=No
             # 账号回了个 1 小时后的墙钟，照抄墙钟就会让客户端对着「其实马上
             # 能用」的池子睡上一小时。这里只以池窗口为准。
             wait = retry_after_seconds(model, realm)
-            exc = RateLimited(last_429, last_429_detail, wait=wait,
-                              reset_at=time.time() + wait)
-            exc.account_uid = last_uid
-            raise exc
+            wrapped = RateLimited(last_429, last_429_detail, wait=wait,
+                                  reset_at=time.time() + wait)
+            wrapped.account_uid = last_uid
+            raise wrapped
         if last_403_detail:
-            exc = ContentRejected(last_error, last_403_detail)
-            exc.account_uid = last_uid
-            raise exc
+            wrapped = ContentRejected(last_error, last_403_detail)
+            wrapped.account_uid = last_uid
+            raise wrapped
         raise last_error
     throttled, wait = realm_model_throttled(realm, model)
     if throttled:
@@ -19753,7 +19753,7 @@ def _anthropic_messages_enabled():
 # ---------------------------------------------------------------------------
 # Per-key concurrency tracking (#359)
 # ---------------------------------------------------------------------------
-_key_active_concurrency = {}
+_key_active_concurrency: dict = {}
 _key_concurrency_lock = threading.Lock()
 
 def _acquire_key_slot(key_entry):
@@ -25715,47 +25715,6 @@ class Handler(BaseHTTPRequestHandler):
                      key=self._key_id(), effort=effort)
         return self._json(200, result)
 
-# ---------------------------------------------------------------------------
-# Per-key concurrency tracking (#359)
-# ---------------------------------------------------------------------------
-_key_active_concurrency = {}
-_key_concurrency_lock = threading.Lock()
-
-def _acquire_key_slot(key_entry):
-    """Try to acquire a concurrency slot for key_entry. Returns (ok, current, limit)."""
-    if not isinstance(key_entry, dict):
-        return True, 0, 0
-    k_id = key_entry.get("id")
-    if not k_id:
-        return True, 0, 0
-    limit = int(key_entry.get("concurrency_limit") or 0)
-    if limit <= 0:
-        return True, 0, 0
-    with _key_concurrency_lock:
-        current = _key_active_concurrency.get(k_id, 0)
-        if current >= limit:
-            return False, current, limit
-        _key_active_concurrency[k_id] = current + 1
-        return True, current + 1, limit
-
-def _release_key_slot(key_entry):
-    """Release a concurrency slot for key_entry."""
-    if not isinstance(key_entry, dict):
-        return
-    k_id = key_entry.get("id")
-    if not k_id:
-        return
-    limit = int(key_entry.get("concurrency_limit") or 0)
-    if limit <= 0:
-        return
-    with _key_concurrency_lock:
-        current = _key_active_concurrency.get(k_id, 0)
-        if current > 1:
-            _key_active_concurrency[k_id] = current - 1
-        else:
-            _key_active_concurrency.pop(k_id, None)
-
-
 
 def running_version():
     """The version this process reports, e.g. "1.6.19".
@@ -26251,10 +26210,13 @@ if __name__ == "__main__":
         sys.stdout = open(os.devnull, "w")
     if sys.stderr is None:
         sys.stderr = open(os.devnull, "w")
-    try:
-        # Keep console output readable regardless of the active code page.
-        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
-    except Exception:
-        pass
+    # Keep console output readable regardless of the active code page. Streams
+    # redirected to a file (or replaced by pythonw) may not expose reconfigure().
+    for _stream in (sys.stdout, sys.stderr):
+        _reconfigure = getattr(_stream, "reconfigure", None)
+        if _reconfigure is not None:
+            try:
+                _reconfigure(encoding="utf-8", errors="replace")
+            except (AttributeError, ValueError):
+                pass
     main()

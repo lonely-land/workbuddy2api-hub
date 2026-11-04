@@ -283,7 +283,7 @@ def _digest(password, salt_hex, rounds=PBKDF2_ROUNDS):
 # 调用方拿到的是顶层浅拷贝：与原实现「每次重新解析、返回值随便改」的语义一致
 # （现网所有 setter 都只改顶层键再 save()，嵌套值按约定只读），改返回值也不会
 # 弄脏缓存。
-_load_cache = {"key": None, "value": {}}
+_load_cache: dict = {"key": None, "value": {}}
 
 
 def load(accounts_dir):

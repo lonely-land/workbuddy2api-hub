@@ -118,7 +118,7 @@ WEB_LIVE_REGISTRY_MAX = 128
 #: 于是存在「线程卡在 socket 上、永远走不到 finally」的窗口——那条会话就会一直
 #: 占着上游的活跃名额，直到进程重启。这张表让**别的线程**能在超时之后替它收尾：
 #: 收尾不能依赖那个卡住的线程本身。
-_WEB_LIVE = {}
+_WEB_LIVE: dict = {}
 _WEB_LIVE_LOCK = threading.Lock()
 
 
@@ -267,7 +267,7 @@ def fetch_account_profile(account, timeout=15):
     return uid, nickname.strip() if isinstance(nickname, str) else ""
 
 
-_OPENER_CACHE = {}
+_OPENER_CACHE: dict = {}
 _OPENER_LOCK = threading.Lock()
 
 
@@ -4196,12 +4196,6 @@ class CreditsRefresher(threading.Thread):
             "last_error": self.last_error,
             "logs": self.logs[-10:],
         }
-
-# 和账号凭证放在同一个目录、但本身不是账号的文件。跳过它们，免得每次启动
-# 都被当成「损坏的账号」解析并打一条 error 日志（settings.json 是面板设置，
-# active_realm.json 是区域开关）。
-NON_ACCOUNT_FILES = ("settings.json", "active_realm.json")
-
 
 # 和账号凭证放在同一个目录、但本身不是账号的文件。跳过它们，免得每次启动
 # 都被当成「损坏的账号」解析并打一条 error 日志（settings.json 是面板设置，

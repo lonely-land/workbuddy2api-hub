@@ -19,7 +19,7 @@ PROBE_FILENAME = "output_probes.json"
 CACHE_TTL = 60
 
 _lock = threading.Lock()
-_cache = {"at": 0.0, "dir": None, "data": {}}
+_cache: dict = {"at": 0.0, "dir": None, "data": {}}
 
 PROBE_PROMPT = ("Write the integers from 1 to 200000, one per line, "
                 "with no commentary and no formatting.")

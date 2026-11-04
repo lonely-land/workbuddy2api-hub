@@ -53,7 +53,7 @@ PROBE_GAP = 0.4
 
 _lock = threading.RLock()
 _run_lock = threading.Lock()
-_state = {"dir": None, "windows": {}}
+_state: dict = {"dir": None, "windows": {}}
 
 
 # --------------------------------------------------------------- 状态存取
