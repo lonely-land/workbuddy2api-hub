@@ -316,14 +316,43 @@ def load(accounts_dir):
     return dict(data)
 
 
+# 凭证文件只留属主可读写（0600）。open() 默认是 0666 & ~umask，常见 umask 022
+# 下就是 0644，同机其他用户能读到明文 token / API key。Windows 与不支持
+# POSIX 模式位的文件系统上 chmod 会抛 OSError，吞掉，免得保存或启动中断。
+def harden_private_file(path):
+    """Restrict a credential file to owner read/write (0o600).
+
+    OSError is ignored so Windows and unusual filesystems cannot break startup.
+    """
+    try:
+        os.chmod(path, 0o600)
+    except OSError:
+        pass
+
+
+# 凭证目录只留属主可进入（0700）。0755 仍允许其他用户列出账号文件名。
+# 同样忽略 OSError。
+def harden_private_dir(path):
+    """Restrict a credential directory to its owner (0o700).
+
+    OSError is ignored so Windows and unusual filesystems cannot break startup.
+    """
+    try:
+        os.chmod(path, 0o700)
+    except OSError:
+        pass
+
+
 def save(accounts_dir, data):
     """Atomic write so a crash cannot leave a half-written settings file."""
     with _lock:
         os.makedirs(accounts_dir, exist_ok=True)
+        harden_private_dir(accounts_dir)
         path = settings_path(accounts_dir)
         tmp = path + ".tmp"
         with open(tmp, "w", encoding="utf-8") as fh:
             json.dump(data, fh, ensure_ascii=False, indent=2)
+        harden_private_file(tmp)
         os.replace(tmp, path)
         # 写完主动失效：不依赖文件系统 mtime 的精度（FAT 只有 2s），保证同尺寸
         # 改写的下一个 load() 一定重新读盘。

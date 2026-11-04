@@ -1369,6 +1369,9 @@ class Account(object):
 
     def save(self, directory):
         os.makedirs(directory, exist_ok=True)
+        # 明文 token 与目录放在一起：目录收成 0700，下面的临时文件在替换前收成
+        # 0600。chmod 失败（Windows / 特殊文件系统）由 helper 吞掉。
+        wb_settings.harden_private_dir(directory)
         safe_uid = re.sub(r"[^A-Za-z0-9_-]", "_", str(self.uid or "")).strip("_ ")
         name = (safe_uid or uuid.uuid4().hex) + ".json"
         path = os.path.abspath(os.path.join(directory, name))
@@ -1389,6 +1392,7 @@ class Account(object):
                     payload.pop(field, None)
                 with open(tmp, "w", encoding="utf-8") as fh:
                     json.dump(payload, fh, ensure_ascii=False, indent=2)
+                wb_settings.harden_private_file(tmp)
                 os.replace(tmp, path)
             except Exception:
                 try:
@@ -4241,9 +4245,15 @@ class AccountPool(object):
         with self._lock:
             self.accounts = []
             if not os.path.isdir(self.dir): return self.accounts
-            for name in sorted(os.listdir(self.dir)):
+            # 先列出再收权限：老安装的账号档多是 0644，下次启动把目录收成 0700、
+            # 每份账号 JSON 收成 0600。某一份 chmod 失败就跳过，不打断加载。
+            names = sorted(os.listdir(self.dir))
+            wb_settings.harden_private_dir(self.dir)
+            for name in names:
                 if not name.endswith(".json") or name in NON_ACCOUNT_FILES: continue
                 path = os.path.join(self.dir, name)
+                # helper 吞掉 OSError：某一份收紧失败就跳过，账号照常加载。
+                wb_settings.harden_private_file(path)
                 try:
                     with open(path, encoding="utf-8") as fh:
                         account = Account(json.load(fh), path)
