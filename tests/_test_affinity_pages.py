@@ -114,16 +114,21 @@ class SessionAffinityHistoryTests(unittest.TestCase):
     def test_expired_entries_drop_out(self):
         affinity = wb_accounts.SessionAffinity(ttl=0.05)
         affinity.bind("s", "old")
-        time.sleep(0.06)
+        # 4x the TTL: enough headroom that a busy runner cannot turn this into
+        # "not expired yet" flake while the second bind is still meaningful.
+        time.sleep(0.2)
         affinity.bind("s", "new")
         self.assertEqual(affinity.recent("s"), ["new"])
 
     def test_the_front_entry_slides_its_expiry(self):
-        affinity = wb_accounts.SessionAffinity(ttl=0.3)
+        # The second get() happens after the original TTL (1.0s) but before the
+        # expiry slid by the first get (1.55s): 0.45s of margin on both sides,
+        # unlike the old 0.1s that turned a busy machine into a false negative.
+        affinity = wb_accounts.SessionAffinity(ttl=1.0)
         affinity.bind("s", "a")
-        time.sleep(0.2)
+        time.sleep(0.55)
         self.assertEqual(affinity.get("s"), "a")
-        time.sleep(0.2)
+        time.sleep(0.55)
         self.assertEqual(affinity.get("s"), "a",
                          "the account serving the conversation must not expire "
                          "while it keeps serving it")
