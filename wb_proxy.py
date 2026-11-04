@@ -19800,6 +19800,21 @@ def _release_key_slot(key_entry):
 BODYLESS_PANEL_POSTS = ("/console/toggle", "/shutdown", "/updates/check",
                         "/updates/install", "/quota-scan/run")
 
+# 访问日志会带上整条请求行。?key= / ?api_key= / ?api-key= 的值在进 log()
+# 之前换掉，stderr 和日志库都看不到原文。只动这三类参数，路径和其它查询不变。
+_QUERY_SECRET_RE = re.compile(
+    r"([?&](?:key|api_key|api-key)=)[^&#\s]*",
+    re.IGNORECASE,
+)
+
+
+def _redact_url_secrets(text):
+    """Mask key / api_key / api-key query values in a request line or URL."""
+    if not isinstance(text, str) or not text:
+        return text
+    return _QUERY_SECRET_RE.sub(r"\1***", text)
+
+
 class Handler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
     # 关掉 Nagle（对连接设 TCP_NODELAY）：响应头和响应体是两次独立 write，Nagle
@@ -19903,7 +19918,10 @@ class Handler(BaseHTTPRequestHandler):
                     return
         except Exception:
             pass
-        log(fmt % args)
+        # 格式化之后立刻脱敏，再把掩码文本交给 log()。密钥只存在于这次
+        # 插值的局部结果里，不会经 fmt/args 进入 stderr 或日志库。
+        message = fmt % args
+        log(_redact_url_secrets(message))
     def _json(self, code, obj):
         body = json.dumps(obj, ensure_ascii=False).encode("utf-8")
         self.send_response(code)

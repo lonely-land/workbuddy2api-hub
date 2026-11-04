@@ -217,7 +217,7 @@ python tests/run_all.py            # 全部套件
 python tests/run_all.py realm      # 只跑名字里含 realm 的
 ```
 
-- 271 个套件：204 个 Python + 67 个 JS；JS 需要 PATH 上有 `node`，缺失时会跳过并提示。
+- 272 个套件：205 个 Python + 67 个 JS；JS 需要 PATH 上有 `node`，缺失时会跳过并提示。
 - `tests/_mobile_check.py` 是独立的 Playwright 手机/桌面布局检查器（需自行安装 Playwright），按需手动运行，不在上面的套件集里。
 - CI（`.github/workflows/tests.yml`）跑同一条命令：Ubuntu 上 python 3.9 与 3.12（3.9 是本项目声称的最低版本），Windows 上 python 3.12；推送 `v*` tag 时额外断言 **tag == 源码版本**（`-ci` 演练 tag 豁免）。
 
@@ -227,6 +227,7 @@ python tests/run_all.py realm      # 只跑名字里含 realm 的
 
 ### Unreleased
 
+- **访问日志不再明文记录 URL 查询串中的密钥**：`?key=`、`?api_key=`、`?api-key=`（大小写不敏感）的值在写入 stderr 与日志库前替换为 `***`，路径和其它参数不变；看板心跳静默规则不变。
 - **局域网 / Docker 不再沿用默认面板密码**：监听非回环地址且仍是 `admin` 时，首次启动生成随机密码并只在启动日志打印一次（容器用 `docker logs`）；本机回环仍用 `admin`，请在设置中修改。可用 `--panel-password` 或 `WB_PANEL_PASSWORD` 指定；缺少 `hashlib.pbkdf2_hmac` 时拒绝以默认密码对外启动。
 - **凭证文件改为仅属主可读**：账号 token 与 API key 仍以明文 JSON 保存，但账号目录收成 0700、凭证文件收成 0600；已有 0644 的账号档在下次启动时自动收紧。Windows 等不支持该权限位的环境会跳过，不影响启动。
 - **账号多时面板更顺**：账号表改为客户端分页（每页 50 个，排序与筛选作用在全部账号上再切页；改区域 / 改筛选 / 点表头回第 1 页，账号变少时页码夹回最后一页）；15 秒账号轮询拿回的数据与视图都没变时不再整表重画，且只在显示账号数据的页签（网关、账号、任务，新导航的总览）上跑，切回这些页签时立即拉一次；自动补积分改为只点名缺积分的号（`POST /accounts/credits` 新增 `uids` 列表参数，非列表回 400），每个号每次页面加载最多补一次，不再触发全池逐个刷。手动「一键刷新积分」不变。
