@@ -25787,8 +25787,10 @@ def _parse_cli_args():
                     help="where the per-account credential files live (default: ./accounts)")
     ap.add_argument("--import-desktop", action="store_true",
                     help="import the desktop app credential as an account, then exit")
-    ap.add_argument("--panel-password", default=None,
-                    help="set the web panel password on startup (default: admin)")
+    ap.add_argument("--panel-password",
+                    default=os.environ.get("WB_PANEL_PASSWORD") or None,
+                    help="set the web panel password on startup "
+                         "(env: WB_PANEL_PASSWORD; loopback default: admin)")
     ap.add_argument("--probe-only", action="store_true",
                     help="only check whether a proxy already listens on the port and "
                          "print what the launcher should say, then exit "
@@ -25938,6 +25940,21 @@ def _probe_running_instance(args):
         return True
     return False
 
+def _bind_is_network_exposed(host):
+    """True when this listen address is reachable beyond the local machine.
+
+    Empty and loopback (127.0.0.1, ::1, localhost) stay private. Unspecified
+    addresses (0.0.0.0, ::) and any other literal or hostname are exposed.
+    """
+    text = (host or "").strip()
+    if not text or text.lower() == "localhost":
+        return False
+    try:
+        address = ipaddress.ip_address(text)
+    except ValueError:
+        return True
+    return not address.is_loopback
+
 def _bootstrap_runtime(args):
     global POOL, ACCOUNTS_DIR, API_KEY, SYSTEM_PROMPT
     global API_KEY_FILE_SET, SCHEDULER, LOG_STORE
@@ -25977,6 +25994,24 @@ def _bootstrap_runtime(args):
         except wb_settings.PanelPasswordCryptoError as exc:
             log("panel      : failed to set password from --panel-password: %s" % exc)
             raise SystemExit("Cannot start: the requested panel password could not be set.") from exc
+    elif (wb_settings.panel_password_is_default(ACCOUNTS_DIR)
+          and _bind_is_network_exposed(args.host)):
+        try:
+            generated = wb_settings.ensure_network_panel_password(ACCOUNTS_DIR)
+        except wb_settings.PanelPasswordCryptoError as exc:
+            raise SystemExit(
+                "Cannot start: the panel cannot be secured without "
+                "hashlib.pbkdf2_hmac, so refusing to start exposed with "
+                "admin. (%s)" % exc
+            ) from exc
+        if generated:
+            print("  " + "=" * 62)
+            print("  NETWORK-EXPOSED PANEL: generated a random panel password")
+            print("  Panel password: %s" % generated)
+            print("  Change it in Settings after login; reset with "
+                  "--panel-password / WB_PANEL_PASSWORD.")
+            print("  " + "=" * 62)
+            sys.stdout.flush()
     elif wb_settings.panel_password_is_default(ACCOUNTS_DIR):
         log("panel      : password is still the default 'admin' - change it in the panel")
     # 实测单价账本：读回来才能让"付得起吗"用真实价格判断，而不是每次都从

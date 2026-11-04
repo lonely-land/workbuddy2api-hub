@@ -424,6 +424,22 @@ def set_panel_password(accounts_dir, password):
         save(accounts_dir, data)
 
 
+def ensure_network_panel_password(accounts_dir):
+    """Mint a random panel password when the install still uses the default.
+
+    A bind on 0.0.0.0, ::, or any other non-loopback address must not keep the
+    well-known "admin" password. Returns the plaintext once so the caller can
+    print it, or None when an explicit password is already stored. The
+    plaintext is never written to settings.json; only the PBKDF2 hash from
+    set_panel_password is.
+    """
+    if not panel_password_is_default(accounts_dir):
+        return None
+    password = secrets.token_urlsafe(18)
+    set_panel_password(accounts_dir, password)
+    return password
+
+
 def api_key_override(accounts_dir):
     """Return (key, is_set). `is_set` means the panel manages the key."""
     data = load(accounts_dir)

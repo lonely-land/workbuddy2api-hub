@@ -68,7 +68,7 @@ This project is for protocol research and personal use only. Prefer the official
 - **macOS / Linux**：双击 `start-wb-proxy.command` 或在终端执行 `./start-wb-proxy.sh [端口]`（默认 8788，需要 Python 3.9+）。
 - **局域网共享模式**：运行 `start-wb-proxy-lan.bat`（Windows）或 `./start-wb-proxy-lan.sh`（macOS/Linux），首次启动将自动生成高强度 API Key 并在控制台打印。
 - 启动后访问：
-  - **Web 看板**：`http://127.0.0.1:8788/`（默认访问密码 `admin`，首次登录请在设置中修改）
+  - **Web 看板**：`http://127.0.0.1:8788/`。本机回环 / local（`127.0.0.1`、`localhost`）沿用历史默认密码 `admin`，登录后请在设置中修改。局域网或 Docker 首次启动若仍是默认密码，会自动生成随机面板密码，并只在启动日志里打印一次（容器用 `docker logs` 查看）。
   - **API 地址**：`http://127.0.0.1:8788/v1`
 
 ### 2. Docker 部署
@@ -107,6 +107,8 @@ services:
 ```
 
 更新镜像：`docker compose pull && docker compose up -d`。
+
+容器监听 `0.0.0.0`：首次启动若面板仍是默认密码，随机密码只出现在启动日志里，用 `docker logs wb-proxy` 查看。本机只监听回环时仍是 `admin`。
 
 ### 3. 启动入口：优先用 `-m`
 
@@ -176,6 +178,7 @@ export ANTHROPIC_API_KEY="你在看板设置中添加并绑定的API_Key"
 | 环境变量 | 默认值 | 说明 |
 |---|---|---|
 | `PORT` | `8788` | 网关监听端口 |
+| `WB_PANEL_PASSWORD` | 留空 | 启动时设置 Web 面板密码（等同 `--panel-password`）。留空时本机回环仍用默认 `admin`；监听局域网 / Docker 且仍是默认密码时，首次自动生成并在启动日志打印一次 |
 | `API_KEY` | 自动生成 | 初始 API Key（看板配置多 Key 后优先由看板管理） |
 | `WB_DEPLOY_MODE` | `lan` | 部署模式：`lan`（0.0.0.0）、`local`（127.0.0.1）、`public` |
 | `WB_MAX_PAYLOAD_BYTES` | `16777216` | 单请求体上限（字节，默认 16MB，支持 1–256 MB） |
@@ -224,6 +227,7 @@ python tests/run_all.py realm      # 只跑名字里含 realm 的
 
 ### Unreleased
 
+- **局域网 / Docker 不再沿用默认面板密码**：监听非回环地址且仍是 `admin` 时，首次启动生成随机密码并只在启动日志打印一次（容器用 `docker logs`）；本机回环仍用 `admin`，请在设置中修改。可用 `--panel-password` 或 `WB_PANEL_PASSWORD` 指定；缺少 `hashlib.pbkdf2_hmac` 时拒绝以默认密码对外启动。
 - **凭证文件改为仅属主可读**：账号 token 与 API key 仍以明文 JSON 保存，但账号目录收成 0700、凭证文件收成 0600；已有 0644 的账号档在下次启动时自动收紧。Windows 等不支持该权限位的环境会跳过，不影响启动。
 - **账号多时面板更顺**：账号表改为客户端分页（每页 50 个，排序与筛选作用在全部账号上再切页；改区域 / 改筛选 / 点表头回第 1 页，账号变少时页码夹回最后一页）；15 秒账号轮询拿回的数据与视图都没变时不再整表重画，且只在显示账号数据的页签（网关、账号、任务，新导航的总览）上跑，切回这些页签时立即拉一次；自动补积分改为只点名缺积分的号（`POST /accounts/credits` 新增 `uids` 列表参数，非列表回 400），每个号每次页面加载最多补一次，不再触发全池逐个刷。手动「一键刷新积分」不变。
 - 移除已废弃的 `WB_DEEPSEEK_FLASH_FORCE_SG` 文档行与两个恒返回 `False` 的存根函数（#776）。
