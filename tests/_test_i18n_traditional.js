@@ -11,9 +11,9 @@
 'use strict';
 
 const assert = require('assert');
-const {dashboardHtml} = require('./_dashboard_source.js');
+const {dashboardCombined} = require('./_dashboard_source.js');
 
-const html = dashboardHtml();
+const html = dashboardCombined();
 const langIndex = html.indexOf("var LANG_KEY = 'wb-lang';");
 assert.ok(langIndex > 0, 'dashboard.html 裡找不到 i18n 區塊');
 const start = html.lastIndexOf('(function(){', langIndex);

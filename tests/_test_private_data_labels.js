@@ -6,8 +6,8 @@
  *   node tests/_test_private_data_labels.js
  */
 const assert = require('assert');
-const {dashboardHtml} = require('./_dashboard_source.js');
-const html = dashboardHtml();
+const {dashboardCombined} = require('./_dashboard_source.js');
+const html = dashboardCombined();
 
 assert.ok(/<option value="true">不参与模型优化 \(true\)<\/option>/.test(html),
           'true must mean do not optimize');

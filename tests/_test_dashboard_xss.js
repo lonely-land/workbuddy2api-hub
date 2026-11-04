@@ -13,11 +13,12 @@
  *   node _test_dashboard_xss.js
  */
 'use strict';
+const {dashboardCombined} = require('./_dashboard_source.js');
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const html = fs.readFileSync(path.join(__dirname, '..', 'dashboard.html'), 'utf8');
+const html = dashboardCombined();
 
 const start = html.indexOf('const dimDefs = {');
 assert.ok(start > 0, 'dimDefs moved; update this test marker');

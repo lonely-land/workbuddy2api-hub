@@ -17,10 +17,10 @@
  */
 'use strict';
 const assert = require('assert');
-const {dashboardHtml, dashboardScript} = require('./_dashboard_source.js');
+const {dashboardCombined, dashboardScript} = require('./_dashboard_source.js');
 const dom = require('./_dom_stub.js');
 
-const html = dashboardHtml();
+const html = dashboardCombined();
 const script = dashboardScript();
 
 /* ---- 1. 结构：控件在账号页里，接的是 switchViewRealm ------------------ */

@@ -14,9 +14,9 @@
 */
 'use strict';
 const assert = require('assert');
-const {dashboardHtml, dashboardScript} = require('./_dashboard_source.js');
+const {dashboardCombined, dashboardScript} = require('./_dashboard_source.js');
 
-const html = dashboardHtml();
+const html = dashboardCombined();
 
 /* 取出一段源码里所有 name(...) 调用的实参文本（跳过字符串字面量里的括号）。 */
 function callArgs(source, name) {

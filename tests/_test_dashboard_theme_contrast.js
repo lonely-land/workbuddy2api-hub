@@ -9,12 +9,13 @@
  * Run with Node: node tests/_test_dashboard_theme_contrast.js
  */
 'use strict';
+const {dashboardCombined} = require('./_dashboard_source.js');
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
-const html = fs.readFileSync(path.join(__dirname, '..', 'dashboard.html'), 'utf8');
+const html = dashboardCombined();
 const marker = '  var VARS = [';
 const start = html.indexOf(marker);
 assert.ok(start > 0, 'the colour tuner block moved; update this test marker');

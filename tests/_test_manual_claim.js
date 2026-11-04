@@ -5,8 +5,8 @@
  *
  *   node tests/_test_manual_claim.js
  */
-const {dashboardHtml} = require('./_dashboard_source.js');
-const html = dashboardHtml();
+const {dashboardCombined} = require('./_dashboard_source.js');
+const html = dashboardCombined();
 
 let pass = 0, fail = 0;
 function check(label, ok, detail) {

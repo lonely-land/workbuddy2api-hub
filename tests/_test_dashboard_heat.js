@@ -1,3 +1,4 @@
+const {dashboardCombined} = require('./_dashboard_source.js');
 /* 热力图必须跟着本地日走，而不是只在进页面时取一次。
  *
  * 回归背景（issue #541）：loadStatic 只在页面启动时取一次 366 天序列，
@@ -11,7 +12,7 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const html = fs.readFileSync(path.join(__dirname, '..', 'dashboard.html'), 'utf8');
+const html = dashboardCombined();
 const start = html.indexOf('let heatFetchedAt');
 const end = html.indexOf('/* ---------------- KPI ---------------- */');
 assert.ok(start > 0 && end > start, 'dashboard.html 里找不到热力图取数逻辑，测试需要更新');

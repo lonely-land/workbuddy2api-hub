@@ -1,3 +1,4 @@
+const {dashboardCombined} = require('./_dashboard_source.js');
 /* 看板刷新的合并语义：撞上正在飞的那一轮时排队补跑，而不是把这次刷新丢掉。
  *
  * 回归背景：刷新函数早先是 `if(REFRESH_BUSY) return;`，切区域/切账号那一下如果
@@ -12,7 +13,7 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const html = fs.readFileSync(path.join(__dirname, '..', 'dashboard.html'), 'utf8');
+const html = dashboardCombined();
 
 // Exercise the current analytics page while its first request is still pending.
 async function testAnalyticsPolling() {

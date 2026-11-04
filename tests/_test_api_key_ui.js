@@ -15,9 +15,9 @@
 'use strict';
 
 const assert = require('assert');
-const {dashboardHtml} = require('./_dashboard_source.js');
+const {dashboardCombined} = require('./_dashboard_source.js');
 
-const html = dashboardHtml();
+const html = dashboardCombined();
 let checks = 0;
 function check(ok, msg){ assert.ok(ok, msg); checks += 1; }
 

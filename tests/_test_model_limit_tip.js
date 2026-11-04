@@ -21,9 +21,9 @@
  */
 'use strict';
 const assert = require('assert');
-const {dashboardHtml, dashboardScript} = require('./_dashboard_source.js');
+const {dashboardCombined, dashboardCss, dashboardScript} = require('./_dashboard_source.js');
 
-const html = dashboardHtml();
+const html = dashboardCombined();
 const script = dashboardScript();
 const dom = require('./_dom_stub.js');
 dom.installDom({
@@ -195,8 +195,7 @@ check('无续行时账号行不带多余 class',
   /^<tr>/.test(api.accountRow(Object.assign({}, acctBase))),
   api.accountRow(Object.assign({}, acctBase)).slice(0, 40));
 
-const seamStyle = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)]
-  .map(m => m[1]).join('\n');
+const seamStyle = dashboardCss();
 function seamDecl(selector){
   const at = seamStyle.indexOf(selector + '{');
   return at < 0 ? '' : seamStyle.slice(at + selector.length + 1, seamStyle.indexOf('}', at));
@@ -286,8 +285,7 @@ for(const [label, title] of [['撞线', hitTitle], ['临时限流', plainTitle],
 // ellipsis 还在，胶囊仍旧被切成半句。所以 CSS 的关键属性链也要钉住。
 // 注意页面里有多个窄屏 media 块，且 `max-width:` 后带不带空格两种写法都有，
 // 收集时两种都要匹配，否则会漏掉 cool-row 所在那一块。
-const cssStyle = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)]
-  .map(m => m[1]).join('\n');
+const cssStyle = dashboardCss();
 // 取某个 @media 块里指定选择器的声明体（按「选择器 + {」精确定位，
 // 只 indexOf(选择器) 会命中注释里同名字符串而取错）。
 function cssDeclInMedia(mediaQuery, selector){

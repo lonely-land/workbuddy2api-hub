@@ -1,3 +1,4 @@
+const {dashboardCombined} = require('./_dashboard_source.js');
 /* Every inline event handler in the dashboard must have a function behind it.
  *
  * A handler name that no longer exists fails only in the browser, only when
@@ -17,7 +18,7 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const html = fs.readFileSync(path.join(__dirname, '..', 'dashboard.html'), 'utf8');
+const html = dashboardCombined();
 
 // Inline attributes, e.g. onclick="setAnalyticsRange('today')".
 const HANDLER_ATTR = /\son(?:click|change|input|submit|keydown|keyup|blur|focus)\s*=\s*"([^"]*)"/g;

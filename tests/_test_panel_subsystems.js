@@ -17,12 +17,13 @@
  * Run with Node: node tests/_test_panel_subsystems.js
  */
 'use strict';
+const {dashboardCombined, dashboardScript} = require('./_dashboard_source.js');
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const html = fs.readFileSync(path.join(__dirname, '..', 'dashboard.html'), 'utf8');
-const script = (html.match(/<script>([\s\S]*?)<\/script>/g) || []).join('\n');
+const html = dashboardCombined();
+const script = dashboardScript();
 
 function has(label, needle){
   assert.ok(html.includes(needle), 'dashboard.html 里找不到' + label + '：' + needle);

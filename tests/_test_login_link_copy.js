@@ -26,7 +26,7 @@
    Run with Node: node tests/_test_login_link_copy.js
 */
 const assert = require('assert');
-const { dashboardHtml, dashboardScript } = require('./_dashboard_source.js');
+const { dashboardCombined, dashboardScript } = require('./_dashboard_source.js');
 
 // One shared fake DOM for every dashboard suite: tests/_dom_stub.js.
 const dom = require('./_dom_stub.js');
@@ -162,7 +162,7 @@ const wiringAndLocalization = (async () => {
   assert.strictEqual(api.translate(control.label), COPY_LABEL_EN);
 })();
 
-const html = dashboardHtml();
+const html = dashboardCombined();
 const start = html.indexOf('async function copyLoginLink(){');
 const end = html.indexOf('async function pollLogin(){', start);
 assert.ok(start > 0 && end > start);

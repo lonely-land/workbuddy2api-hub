@@ -9,10 +9,10 @@
 */
 'use strict';
 const assert = require('assert');
-const {dashboardHtml} = require('./_dashboard_source.js');
+const {dashboardCombined} = require('./_dashboard_source.js');
 const {loadDashboard} = require('./_dashboard_sandbox.js');
 
-const html = dashboardHtml();
+const html = dashboardCombined();
 
 /* ---- 1. 结构：按钮接的是新窗口，不是服务端进程 ------------------------- */
 

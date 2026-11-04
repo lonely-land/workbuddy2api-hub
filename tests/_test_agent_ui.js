@@ -1,3 +1,4 @@
+const {dashboardScript} = require('./_dashboard_source.js');
 /* The agent-config card must send a payload the backend actually accepts.
 
    Two bugs shipped through a green test suite because nothing exercised the
@@ -19,9 +20,7 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const html = fs.readFileSync(path.join(__dirname, '..', 'dashboard.html'), 'utf8');
-const script = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)]
-  .map(match => match[1]).join('\n');
+const script = dashboardScript();
 
 // ---- stub DOM -------------------------------------------------------------
 const values = {

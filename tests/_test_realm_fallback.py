@@ -19,6 +19,7 @@ import unittest
 from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from _dashboard_source import dashboard_combined
 
 import wb_proxy
 import wb_settings
@@ -202,8 +203,7 @@ class PanelTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        with open(os.path.join(HERE, "dashboard.html"), encoding="utf-8") as fh:
-            cls.html = fh.read()
+        cls.html = dashboard_combined()
 
     def test_switch_exists(self):
         self.assertIn('id="setRealmFallback"', self.html)

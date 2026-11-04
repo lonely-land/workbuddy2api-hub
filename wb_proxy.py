@@ -1224,6 +1224,11 @@ USAGE_DIR = os.environ.get("WB_PROXY_USAGE_DIR") \
     or os.path.join(os.path.dirname(os.path.abspath(__file__)), "usage")
 USAGE_LOG = os.path.join(USAGE_DIR, "usage.jsonl")
 DASHBOARD_HTML = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dashboard.html")
+# CSS/JS split out of the page: /static/dashboard/<css|js>/<file>. The gateway
+# serves these next to dashboard.html so the portable ZIP / Docker image carry
+# the same directory layout.
+DASHBOARD_STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                    "static", "dashboard")
 USAGE_FIELDS = ("prompt_tokens", "completion_tokens", "reasoning_tokens",
                 "cached_tokens", "total_tokens", "credit")
 # Web-panel access control. The panel is gated by its own password (default
@@ -20521,6 +20526,11 @@ class Handler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         path = parsed.path
         query = parse_qs(parsed.query)
+        # The page shell loads its own CSS/JS before the login gate exists, so
+        # this route must stay outside the panel-session check. The assets are
+        # public source files, not secrets.
+        if path.startswith("/static/dashboard/"):
+            return self._get_dashboard_static(path)
         # The standalone configurator, for clients on machines that do not run
         # the gateway. Served before the panel gate and deliberately without a
         # session: the machines that need it are exactly the ones that cannot
@@ -20620,6 +20630,45 @@ class Handler(BaseHTTPRequestHandler):
             # wb_agents、不做任何探测（issue #246）。
             return self._json(200, {"enabled": self._agents_client_allowed()})
         return self._error(404, "not found", "invalid_request_error")
+    def _get_dashboard_static(self, path):
+        """Serve the dashboard's CSS/JS assets.
+
+        The URL prefix is fixed; everything after it is resolved against
+        DASHBOARD_STATIC_DIR with realpath() and must stay inside that
+        directory. Only .css / .js are served, and missing files are a plain
+        404 (no directory listings, no source fallbacks).
+        """
+        rel = path[len("/static/dashboard/"):]
+        if not rel or not rel.endswith((".css", ".js")):
+            return self._error(404, "static asset not found", "invalid_request_error")
+        base = os.path.realpath(DASHBOARD_STATIC_DIR)
+        target = os.path.realpath(os.path.join(base, *rel.split("/")))
+        if target != base and not target.startswith(base + os.sep):
+            return self._error(404, "static asset not found", "invalid_request_error")
+        try:
+            with open(target, "rb") as fh:
+                body = fh.read()
+            st = os.stat(target)
+        except OSError:
+            return self._error(404, "static asset not found", "invalid_request_error")
+        is_css = target.endswith(".css")
+        etag = '"%x-%x"' % (st.st_mtime_ns, st.st_size)
+        if _if_none_match_hit(self.headers.get("If-None-Match") or "", etag):
+            self.send_response(304)
+            self.send_header("Cache-Control", "no-cache")
+            self.send_header("ETag", etag)
+            self.end_headers()
+            return
+        self.send_response(200)
+        self.send_header("Content-Type",
+                         "text/css; charset=utf-8" if is_css
+                         else "text/javascript; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("ETag", etag)
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.end_headers()
+        self.wfile.write(body)
     def _get_dashboard(self):
         return self._dashboard()
 

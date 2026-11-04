@@ -1,0 +1,21 @@
+html:not([data-console-layout="on"]) .console-product,
+html:not([data-console-layout="on"]) .console-service,
+html:not([data-console-layout="on"]) .console-mobile-menu,
+html:not([data-console-layout="on"]) .console-sidebar,
+html:not([data-console-layout="on"]) .console-scrim,
+html:not([data-console-layout="on"]) .console-contextbar,
+html:not([data-console-layout="on"]) .console-insights,
+html:not([data-console-layout="on"]) .console-filterbar {display:none!important}
+html:not([data-console-layout="on"]) .header-left .console-nav-group {display:contents}
+html:not([data-console-layout="on"]) .header-left .console-nav-caption,
+html:not([data-console-layout="on"]) .header-left .console-nav-link {display:none!important}
+html:not([data-console-layout="on"]) #btnNavGateway {order:1}
+html:not([data-console-layout="on"]) #btnNavAccounts {order:2}
+html:not([data-console-layout="on"]) #btnNavTasks {order:3}
+html:not([data-console-layout="on"]) #btnNavMedia {order:4}
+html:not([data-console-layout="on"]) #btnNavAnalytics {order:5}
+html:not([data-console-layout="on"]) #btnNavAgents {order:6}
+html:not([data-console-layout="on"]) #btnNavSettings {order:7}
+html:not([data-console-layout="on"]) #btnNavLogs {order:8}
+html[data-console-layout="on"] #classicTitle {display:none}
+

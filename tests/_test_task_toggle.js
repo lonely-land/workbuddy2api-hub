@@ -1,3 +1,4 @@
+const {dashboardCombined} = require('./_dashboard_source.js');
 /* Per-account task participation toggle (issue #521).
  *
  * The account row carries a "任务开/关" chip; toggling it must PATCH only
@@ -10,7 +11,7 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const html = fs.readFileSync(path.join(__dirname, '..', 'dashboard.html'), 'utf8');
+const html = dashboardCombined();
 
 const start = html.indexOf('async function toggleAccountTasks');
 const end = html.indexOf('async function setAccountWeight');
