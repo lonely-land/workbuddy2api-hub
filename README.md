@@ -221,7 +221,7 @@ python tests/run_all.py realm      # 只跑名字里含 realm 的
 ```
 
 - 274 个套件：206 个 Python + 68 个 JS；JS 需要 PATH 上有 `node`，缺失时会跳过并提示。
-- 类型检查：`python -m mypy`（配置见 `mypy.ini`，按 Python 3.9 口径检查 36 个 `wb_*.py`；本地可用 `uvx --python 3.12 'mypy==1.13.0'`）。CI 里有独立 `typecheck` job，测试矩阵不变。
+- 类型检查：`python -m mypy`（配置见 `mypy.ini`，按 Python 3.9 口径检查 36 个 `wb_*.py`；本地可用 `uvx --python 3.12 'mypy==1.13.0'`）。
 - `tests/_mobile_check.py` 是独立的 Playwright 手机/桌面布局检查器（需自行安装 Playwright），按需手动运行，不在上面的套件集里。
 - CI（`.github/workflows/tests.yml`）跑同一条命令：Ubuntu 上 python 3.9 与 3.12（3.9 是本项目声称的最低版本），Windows 上 python 3.12；推送 `v*` tag 时额外断言 **tag == 源码版本**（`-ci` 演练 tag 豁免）。
 
@@ -231,7 +231,7 @@ python tests/run_all.py realm      # 只跑名字里含 realm 的
 
 ### Unreleased
 
-- **引入 mypy 类型检查门禁**：`mypy.ini` 按 Python 3.9 口径检查 36 个 `wb_*.py`，CI 新增 `typecheck` job；顺带清掉重复定义的 `_acquire_key_slot` / `_release_key_slot` 与重复的 `NON_ACCOUNT_FILES`，修掉 `exc` 越界赋值等静态问题，运行时行为不变。
+- **引入 mypy 类型检查**：`mypy.ini` 按 Python 3.9 口径检查 36 个 `wb_*.py`；顺带清掉重复定义的 `_acquire_key_slot` / `_release_key_slot` 与重复的 `NON_ACCOUNT_FILES`，修掉 `exc` 越界赋值等静态问题，运行时行为不变。
 - **看板拆成 HTML 模板 + 静态 CSS/JS**：`dashboard.html` 从 21,492 行降到约 2,700 行，样式与脚本按原始顺序拆到 `static/dashboard/{css,js}/`（保留 `wb-alibaba-console` / `wb-console-v2` / `nextStyles` 的 id 与 media）；网关新增 `/static/dashboard/` 路由（路径逃逸防护、ETag/304、no-cache、正确 MIME）。看板外观与交互不变，测试改为从模板 + 静态资源读取源码。
 - **发布包纳入看板静态资源**：Dockerfile、便携包 `release/portable.txt`、OpenWrt ipk/apk 都带上 `static/dashboard/`；release 资产测试新增静态文件完整性断言，漏打包会直接红。
 - **修复账号昵称的存储型 XSS**：用量看板的账号 / 模型 / API Key 表格在拼 `innerHTML` 前对服务端字段做 HTML 转义；导入带 HTML 的昵称或 Key 名不再执行脚本，正常名称显示不变。
