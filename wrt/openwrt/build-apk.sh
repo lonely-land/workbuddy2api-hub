@@ -66,6 +66,9 @@ for f in "$APP_SRC"/wb_*.py; do
 	cp "$f" "$DST/"
 done
 cp "$APP_SRC/dashboard.html" "$DST/"
+[ -d "$APP_SRC/static/dashboard" ] || {
+	echo "错误: $APP_SRC 里没有 static/dashboard/（看板 CSS/JS 已拆出，不能只打 dashboard.html）" >&2; exit 1; }
+cp -R "$APP_SRC/static" "$DST/"
 ls "$DST" | wc -l | xargs echo "    文件数:"
 
 # ---- 3. 拷进 SDK ------------------------------------------------------------
