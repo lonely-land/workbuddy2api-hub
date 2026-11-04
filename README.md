@@ -220,7 +220,7 @@ python tests/run_all.py            # 全部套件
 python tests/run_all.py realm      # 只跑名字里含 realm 的
 ```
 
-- 272 个套件：205 个 Python + 67 个 JS；JS 需要 PATH 上有 `node`，缺失时会跳过并提示。
+- 273 个套件：205 个 Python + 68 个 JS；JS 需要 PATH 上有 `node`，缺失时会跳过并提示。
 - `tests/_mobile_check.py` 是独立的 Playwright 手机/桌面布局检查器（需自行安装 Playwright），按需手动运行，不在上面的套件集里。
 - CI（`.github/workflows/tests.yml`）跑同一条命令：Ubuntu 上 python 3.9 与 3.12（3.9 是本项目声称的最低版本），Windows 上 python 3.12；推送 `v*` tag 时额外断言 **tag == 源码版本**（`-ci` 演练 tag 豁免）。
 
@@ -230,6 +230,7 @@ python tests/run_all.py realm      # 只跑名字里含 realm 的
 
 ### Unreleased
 
+- **修复账号昵称的存储型 XSS**：用量看板的账号 / 模型 / API Key 表格在拼 `innerHTML` 前对服务端字段做 HTML 转义；导入带 HTML 的昵称或 Key 名不再执行脚本，正常名称显示不变。
 - **访问日志不再明文记录 URL 查询串中的密钥**：`?key=`、`?api_key=`、`?api-key=`（大小写不敏感）的值在写入 stderr 与日志库前替换为 `***`，路径和其它参数不变；看板心跳静默规则不变。
 - **Docker 默认只发布到宿主机回环**：仓库自带的 `docker-compose.yml` / `docker-compose.build.yml` 把 8788 绑到 `127.0.0.1`；需要局域网访问时改成 `"8788:8788"` 并设置面板密码。容器内仍监听 `0.0.0.0`。
 - **局域网 / Docker 不再沿用默认面板密码**：监听非回环地址且仍是 `admin` 时，首次启动生成随机密码并只在启动日志打印一次（容器用 `docker logs`）；本机回环仍用 `admin`，请在设置中修改。可用 `--panel-password` 或 `WB_PANEL_PASSWORD` 指定；缺少 `hashlib.pbkdf2_hmac` 时拒绝以默认密码对外启动。

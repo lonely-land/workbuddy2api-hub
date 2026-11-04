@@ -20062,7 +20062,7 @@ const dimDefs = {
       const list = Array.isArray(a.models) ? a.models : Object.entries(a.models || {}).map(([name,v])=>({model:name, window:v}));
       return list.map(m => ({
         key: m.model || m.name,
-        who: `<div class="who"><b>${m.model || m.name || '—'}</b><span>${fmtCompact(m.window.requests)} 次请求</span></div>`,
+        who: `<div class="who"><b>${esc(m.model || m.name || '—')}</b><span>${fmtCompact(m.window.requests)} 次请求</span></div>`,
         req: m.window.requests,
         tok: m.window.total_tokens ?? m.window.tokens,
         tokSub: `思考 ${fmtCompact(m.window.reasoning_tokens ?? m.window.reasoning ?? 0)} · 缓存 ${fmtCompact(m.window.cached_tokens ?? 0)}`,
@@ -20085,7 +20085,7 @@ const dimDefs = {
       const a = state.analytics; if (!a) return [];
       return (a.accounts || []).map(acc => ({
         key: acc.uid,
-        who: `<div class="who"><b>${acc.nickname || acc.uid.slice(0,8)} <span class="realm-tag ${acc.realm === 'intl' ? 'realm-intl' : 'realm-cn'}">${acc.realm === 'intl' ? '国际版' : '国内版'}</span></b><span data-tip="UID：${acc.uid}">${(acc.uid||'').slice(0,13)}…</span></div>`,
+        who: `<div class="who"><b>${esc(acc.nickname || acc.uid.slice(0,8))} <span class="realm-tag ${acc.realm === 'intl' ? 'realm-intl' : 'realm-cn'}">${acc.realm === 'intl' ? '国际版' : '国内版'}</span></b><span data-tip="UID：${esc(acc.uid)}">${esc((acc.uid||'').slice(0,13))}…</span></div>`,
         req: acc.window.requests,
         tok: acc.window.total_tokens,
         tokSub: `思考 ${fmtCompact(acc.window.reasoning_tokens)} · 缓存 ${fmtCompact(acc.window.cached_tokens)}`,
@@ -20108,7 +20108,7 @@ const dimDefs = {
       const a = state.analytics; if (!a) return [];
       return (a.keys || []).map(k => ({
         key: 'key:' + (k.key || k.name),
-        who: `<div class="who"><b>${k.name || k.key}</b><span>${k.source === 'panel' ? '面板创建' : k.source || ''}${k.realm ? ' · ' + k.realm : ''}</span></div>`,
+        who: `<div class="who"><b>${esc(k.name || k.key)}</b><span>${k.source === 'panel' ? '面板创建' : esc(k.source || '')}${k.realm ? ' · ' + esc(k.realm) : ''}</span></div>`,
         req: k.window.requests,
         tok: k.window.total_tokens,
         tokSub: `思考 ${fmtCompact(k.window.reasoning_tokens)} · 缓存 ${fmtCompact(k.window.cached_tokens)}`,
