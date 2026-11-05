@@ -85,3 +85,21 @@ wb_webagent.py
 wb_webprompts.py
 wb_webtools.py
 wb_window_probe.py
+
+# 看板拆分出的静态样式/脚本（dashboard.html 引用；缺了页面会无样式/无交互）
+static/dashboard/css/00-first-paint.css
+static/dashboard/css/01-theme.css
+static/dashboard/css/02-console-alibaba.css
+static/dashboard/css/03-console-v2.css
+static/dashboard/css/04-console-layout.css
+static/dashboard/css/05-next-shell.css
+static/dashboard/css/06-theme-tuner.css
+static/dashboard/js/00-session-bootstrap.js
+static/dashboard/js/01-console-layout-boot.js
+static/dashboard/js/02-main-tab-boot.js
+static/dashboard/js/03-i18n.js
+static/dashboard/js/04-login.js
+static/dashboard/js/05-usage-analytics.js
+static/dashboard/js/06-theme-tuner.js
+static/dashboard/js/07-custom-select.js
+static/dashboard/js/08-next-shell.js

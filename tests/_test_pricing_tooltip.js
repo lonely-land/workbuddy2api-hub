@@ -14,9 +14,9 @@
  * Run with Node: node tests/_test_pricing_tooltip.js
  */
 const assert = require('assert');
-const {dashboardHtml, dashboardScript} = require('./_dashboard_source.js');
+const {dashboardCombined, dashboardScript} = require('./_dashboard_source.js');
 
-const html = dashboardHtml();
+const html = dashboardCombined();
 const script = dashboardScript();
 
 // One shared fake DOM for every dashboard suite: tests/_dom_stub.js.

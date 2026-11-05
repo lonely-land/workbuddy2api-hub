@@ -18,11 +18,13 @@
 */
 'use strict';
 const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
 const vm = require('vm');
-const {dashboardHtml} = require('./_dashboard_source.js');
+const {dashboardCombined, dashboardScript} = require('./_dashboard_source.js');
 const {loadDashboard} = require('./_dashboard_sandbox.js');
 
-const html = dashboardHtml();
+const html = dashboardCombined();
 
 /* ---- 1. markup：闸门默认可见（fail-closed） ---------------------------- */
 
@@ -37,13 +39,19 @@ assert.ok(!/display:none/.test(gateTag[0]),
 
 const headEnd = html.indexOf('</head>');
 const headHtml = html.slice(0, headEnd);
-assert.ok(/html\.wb-panel-session #panelGate\{display:none!important\}/.test(headHtml),
-  '隐藏规则必须写在 <head>，并且带 !important（闸门的可见性在它自己的内联 style 上）');
+assert.ok(/href="\/static\/dashboard\/css\/00-first-paint\.css"/.test(headHtml),
+  '隐藏规则所在的首帧样式必须由 <head> 里的 link 引入');
+const firstPaintCss = fs.readFileSync(path.join(
+  __dirname, '..', 'static', 'dashboard', 'css', '00-first-paint.css'), 'utf8');
+assert.ok(/html\.wb-panel-session #panelGate\{display:none!important\}/.test(firstPaintCss),
+  '隐藏规则必须带 !important（闸门的可见性在它自己的内联 style 上）');
 
-const headScripts = [...headHtml.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map(m => m[1]);
+const headScriptSrcs = [...headHtml.matchAll(/<script[^>]*\bsrc="([^"]+)"[^>]*>/g)].map(m => m[1]);
+const headScripts = headScriptSrcs.map(src => fs.readFileSync(
+  path.join(__dirname, '..', src.replace(/^\/+/, '')), 'utf8'));
 const gateScripts = headScripts.filter(src => src.indexOf('wb-panel-session') !== -1);
 assert.strictEqual(gateScripts.length, 1,
-  '首帧判定应当正好是一段内联脚本（多段会让「哪一段负责隐藏」变得不清楚）');
+  '首帧判定应当正好是一段 head 脚本（多段会让「哪一段负责隐藏」变得不清楚）');
 const firstPaintScript = gateScripts[0];
 
 const storeMatch = html.match(/const PANEL_STORE = '([^']+)'/);
@@ -53,8 +61,8 @@ assert.ok(firstPaintScript.indexOf("const PANEL_STORE = '" + tokenKey + "'") !==
   'PANEL_STORE 必须定义在 <head> 的首帧脚本里：首帧判定要用它，之后所有读写复用同一个绑定');
 assert.strictEqual(html.split("'" + tokenKey + "'").length - 1, 1,
   '令牌键的字面量全页只能出现一次（就是那处定义），其余一律写 PANEL_STORE');
-assert.ok(html.slice(headEnd).indexOf('const PANEL_STORE =') === -1,
-  'PANEL_STORE 不能在 <head> 之外再声明一次：同一个经典脚本作用域里会直接 SyntaxError');
+assert.strictEqual(dashboardScript().split("const PANEL_STORE =").length - 1, 1,
+  'PANEL_STORE 只能在页面脚本里声明一次：同一作用域里会直接 SyntaxError');
 
 /* ---- 3. 首帧判定的行为：无令牌不隐藏 / 有令牌先隐藏 / 读存储抛错不算崩 -- */
 

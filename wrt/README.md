@@ -18,7 +18,8 @@ wrt/
         └── files/                 # init.d、uci 配置、面板缓存预热脚本
 ```
 
-两种包的内容一致：`wb_*.py` + `dashboard.html`（纯 Python 标准库）+
+两种包的内容一致：`wb_*.py` + `dashboard.html` + `static/dashboard/`（看板的 CSS/JS，
+纯 Python 标准库）+
 `/etc/init.d/workbuddy2api` + `/etc/config/workbuddy2api` + `/usr/bin/workbuddy2api-warm`。
 
 | 产物 | 适用系统 | 安装方式 |

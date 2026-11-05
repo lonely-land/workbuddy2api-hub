@@ -7,9 +7,9 @@
       账号已删除时同样回退 uid 前 8 位，不留空。Run with Node.
 */
 const assert = require('assert');
-const {dashboardHtml, dashboardScript} = require('./_dashboard_source.js');
+const {dashboardCombined, dashboardScript} = require('./_dashboard_source.js');
 
-const html = dashboardHtml();
+const html = dashboardCombined();
 const script = dashboardScript();
 
 // One persistent element per id, so the rendered table can be read back.

@@ -1,0 +1,174 @@
+/* ============================================================
+   Alibaba Cloud console skin (first pass)
+   - cool neutral surfaces, orange only for primary/active
+   - one navigation level: top tabs; the in-page sidebar is hidden
+   - flat cards and quieter tables, no warm gradients/shadows
+   ============================================================ */
+:root{
+  --serif: var(--sans);
+  --radius-card: 10px;
+  --radius-control: 7px;
+  --radius-pill: 999px;
+}
+body{background:var(--bg);font-family:var(--sans);font-size:13px}
+header{
+  min-height:56px;height:56px;padding:0 var(--page-pad);
+  background:var(--panel);border-bottom:1px solid var(--line);
+  box-shadow:none;backdrop-filter:none;position:sticky;
+}
+.header-left{gap:24px;flex-wrap:nowrap}
+h1{font-size:16px;font-weight:600;letter-spacing:0}
+h1 .dot{width:7px;height:7px;box-shadow:none}
+h2,h3,.main-page h2{font-family:var(--sans);letter-spacing:0}
+.main-nav{
+  display:flex;height:56px;padding:0;gap:0;background:transparent;
+  border:0;border-radius:0;
+}
+.main-nav-btn{
+  height:56px;padding:0 16px;border:0!important;border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;
+  color:var(--dim);font-size:13px;font-weight:500;position:relative;
+}
+.main-nav-btn:hover{color:var(--fg);background:transparent!important}
+.main-nav-btn.active{color:var(--accent)!important;font-weight:600;background:transparent!important}
+.main-nav-btn.active::after{
+  content:"";position:absolute;left:16px;right:16px;bottom:0;height:2px;
+  background:var(--accent);border-radius:2px 2px 0 0;
+}
+.header-right{gap:8px}
+.gh-link,.hdr-icon-btn,.theme-btn{
+  border:0!important;background:transparent!important;box-shadow:none!important;
+  width:32px;height:32px;border-radius:7px!important;
+}
+.gh-link:hover,.hdr-icon-btn:hover,.theme-btn:hover{background:var(--panel2)!important}
+main{max-width:1680px;padding:24px 32px 56px}
+
+/* One navigation level: hide the generated in-page sidebar. The section
+   anchors still exist and all existing JS keeps working. */
+.main-page.page-nav-on.active{display:block;grid-template-columns:none}
+.main-page.page-nav-on.active>.page-sidebar{display:none!important}
+.main-page.page-nav-on.active>*{grid-column:auto}
+.page-nav-body{min-width:0;width:100%}
+
+section,.gw-summary,.realm-card,.card,.modal{border-radius:10px!important;box-shadow:none!important}
+section{padding:16px 20px;border-color:var(--line);margin-bottom:16px}
+#pageAnalytics section.panel,#pageAnalytics .panel{border-radius:10px!important}
+
+.realm-cards-grid{gap:12px!important;margin-bottom:16px!important}
+.realm-card{
+  min-height:104px;padding:16px 18px;background:var(--panel);
+  border:1px solid var(--line);box-shadow:none!important;transition:border-color .15s ease;
+}
+.realm-card:hover{transform:none;border-color:var(--line-hover);box-shadow:none!important}
+.realm-card.active{
+  border-color:var(--accent)!important;background:var(--accent-soft)!important;
+  box-shadow:none!important;
+}
+.realm-card.active#tabCn{
+  border-color:var(--think)!important;background:var(--think-soft)!important;
+  box-shadow:none!important;
+}
+.realm-card.gateway-ctrl{background:var(--panel2)!important;border-color:var(--line)!important}
+.gw-summary{overflow:hidden;border-color:var(--line)}
+#cards .card{padding:14px 20px}
+#cards .card .k{font-size:11px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--dim)}
+#cards .card .v{font-size:24px;font-weight:600;letter-spacing:-.3px}
+#cards .card .v-num{font-size:17px;font-weight:600}
+#schedulerBar{background:var(--panel2);font-size:11.5px;padding:9px 20px}
+
+button{
+  border-radius:7px;border:1px solid var(--accent);background:var(--accent);
+  color:#fff;box-shadow:none;font-size:12.5px;font-weight:500;padding:6px 12px;
+  transition:background-color .15s ease,border-color .15s ease,color .15s ease;
+}
+button:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+button.sec{background:var(--panel);border-color:var(--line);color:var(--fg)}
+button.sec:hover{background:var(--panel2);border-color:var(--line-hover)}
+button.mini{padding:4px 9px;font-size:11px}
+button.danger{background:var(--bad-soft);border-color:transparent;color:var(--bad)}
+button.danger:hover{background:var(--bad);border-color:var(--bad);color:#fff}
+.toggle-realm-btn{
+  background:var(--panel);border-color:var(--line);color:var(--fg);
+  box-shadow:none;border-radius:7px;
+}
+.toggle-realm-btn:hover{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.id-btn.active{background:var(--accent);color:#fff;box-shadow:none}
+.id-btn-group{border-radius:6px}
+.realm-switch button.active#accountsRealmCn{color:var(--think);border-color:var(--think)}
+
+input,select,textarea{border-radius:7px;border-color:var(--line);background:var(--panel)}
+input:focus,select:focus,textarea:focus{
+  outline:none;border-color:var(--accent)!important;
+  box-shadow:0 0 0 3px var(--accent-soft)!important;
+}
+
+/* Tables: calm header, tabular numbers, no card-in-card look. */
+table{font-size:12.5px}
+th{
+  height:38px;padding:8px 12px;border-bottom:1px solid var(--line);
+  background:var(--panel2)!important;color:var(--dim);font-size:11.5px;font-weight:600;
+}
+td{padding:8px 12px;border-bottom:1px solid var(--line)}
+tbody tr:hover{background:var(--panel2)}
+.table-wrap{border-radius:8px}
+table.account-cards .acct-actions button.mini{box-shadow:none}
+table.account-cards td.acct-actions{
+  background:var(--panel)!important;box-shadow:none!important;
+  border-left:1px solid var(--line);
+}
+table.account-cards tbody tr:hover td.acct-actions{background:var(--panel2)!important}
+table.account-cards th:last-child{background:var(--panel2)!important;box-shadow:none!important}
+/* Account row actions: keep two compact rows inside the sticky cell. The
+   "出站身份：" label is redundant (the WB/VSC/CLI title explains it). */
+table.account-cards .acct-actions-row{flex-wrap:wrap;gap:3px}
+table.account-cards .acct-actions .id-btn-label{display:none}
+table.account-cards .acct-actions button.mini{padding:3px 7px;font-size:10.5px}
+table.account-cards .acct-actions .id-btn{padding:2px 5px;font-size:10px}
+
+.badge,.cool-pill,.badge-effort{border-color:transparent!important;box-shadow:none;font-weight:500}
+.badge{border-radius:999px;padding:1px 7px;font-size:10.5px;background:var(--panel2);color:var(--dim)}
+.badge.ok{color:var(--accent2);background:var(--accent2-soft)}
+.badge.s{color:var(--think);background:var(--think-soft)}
+.badge.warn{color:var(--warn);background:var(--warn-soft)}
+.badge.bad{color:var(--bad);background:var(--bad-soft)}
+.badge.off{color:var(--dim);background:var(--panel2)}
+.cool-pill{color:var(--warn);background:var(--warn-soft)}
+.badge-effort{color:var(--think);background:var(--think-soft)}
+.realm-badge-intl{color:var(--think);background:var(--think-soft);border-color:transparent}
+.realm-badge-cn{color:var(--accent);background:var(--accent-soft);border-color:transparent}
+.realm-badge-codearts{color:var(--warn);background:var(--warn-soft);border-color:transparent}
+.credit-main b{color:var(--accent2)}
+
+/* Keep the panel usable at tablet/mobile widths after removing the sidebar. */
+@media (max-width:1100px){
+  header{height:auto;min-height:56px;padding:8px 16px;gap:8px}
+  .header-left{width:100%;gap:10px;flex-wrap:wrap}
+  .main-nav{order:9;width:100%;height:auto;overflow-x:auto;border-top:1px solid var(--line);padding-top:2px}
+  .main-nav-btn{height:42px;padding:0 10px;white-space:nowrap}
+  .main-nav-btn.active::after{left:10px;right:10px}
+  main{padding:18px 16px 48px}
+}
+/* Phone shell: brand and tools on row 1, scrollable tabs on row 2. */
+@media (max-width:860px){
+  header{
+    display:grid;grid-template-columns:1fr auto;
+    grid-template-areas:"brand tools" "nav nav";
+    height:auto;min-height:0;padding:8px 12px;gap:4px 8px;
+  }
+  .header-left{display:contents}
+  .header-left h1{grid-area:brand;align-self:center;font-size:15px}
+  .header-right{display:flex!important;grid-area:tools;justify-self:end;align-items:center;gap:4px}
+  .header-left .gh-link,.header-left .hdr-icon-btn{display:none}
+  .main-nav{
+    grid-area:nav;width:100%;height:44px;padding:0;
+    border-top:1px solid var(--line);overflow-x:auto;overflow-y:hidden;
+  }
+  .main-nav-btn{height:42px;padding:0 11px;font-size:12.5px}
+  .main-nav-btn.active::after{left:11px;right:11px}
+}
+@media (max-width:860px){
+  .realm-cards-grid{grid-template-columns:1fr!important}
+  section{padding:14px;border-radius:10px}
+  .main-page.page-nav-on.active{display:block}
+}
+

@@ -1349,7 +1349,7 @@ def set_settings_dir(path):
 # join 到 accounts 目录上——现场那份逐行剖面里 os.path.join 排第二，其中约
 # 三分之一就是这里。它只是一次 join，同一个目录永远给同一个字符串，所以按
 # 目录缓存一次即可：目录变了键就变，不需要别的失效条件。
-_settings_path_cache = {}
+_settings_path_cache: dict = {}
 _MEMO_LIMIT = 512
 
 
@@ -1598,7 +1598,7 @@ def set_data_dir(path):
 # 路径按目录字符串缓存——键就是 data_dir() 本身，所以目录一变（面板换数据
 # 目录、测试里每个用例一个临时目录）自然落到新键上，返回的字符串与逐个
 # os.path.join 拼出来的完全一致。
-_paths_cache = {}
+_paths_cache: dict = {}
 
 
 def _data_paths():
@@ -1637,7 +1637,7 @@ def overrides_path():
     return _data_paths()[3]
 
 
-_runtime_overrides_cache = {"key": None, "data": {}}
+_runtime_overrides_cache: dict = {"key": None, "data": {}}
 
 
 def _read_runtime_overrides():
@@ -1683,7 +1683,7 @@ def markup_path():
     return os.path.join(os.path.dirname(overrides_path()), "pricing-markup.json")
 
 
-_markup_cache = {"key": None, "data": {}}
+_markup_cache: dict = {"key": None, "data": {}}
 
 
 def _read_markup():
@@ -1750,7 +1750,7 @@ def save_runtime_override(model, or_id):
 # 被看见（一次聚合里 stat 从每行数次降到每秒一次），而本进程自己的写入立刻
 # 作废缓存（见 _forget_file_key），所以「刚记完价的那一行」一行都不等。
 _FILE_KEY_TTL = 1.0
-_file_key_cache = {}
+_file_key_cache: dict = {}
 _file_key_lock = threading.Lock()
 
 
@@ -2098,7 +2098,7 @@ def gap_items(or_models, by_norm=None, extra_ids=None, variants=None, priced=())
 # 对象本身，所以身份不可能在对象被回收后被复用（命中时还会再确认一次）。
 # 缓存的 entry 只被 compute_row 与 _details_for 读，从不交给调用方，也没有人
 # 改它（rates 由 _details_for 另拷一份），所以外面看到的还是各自独立的 dict。
-_entry_memo = {}
+_entry_memo: dict = {}
 
 
 def policy_entry(policy):
@@ -2386,7 +2386,7 @@ def _no_details():
 #
 # 键是身份，值里必须同时握着这三个对象：身份只在对象活着的时候唯一，缓存自己
 # 拿住引用，键才不会被回收后的新对象复用（这正是策略表刷新时换上的那批新行）。
-_details_memo = {}
+_details_memo: dict = {}
 
 
 def _details_for(cost, entry, meta, model):

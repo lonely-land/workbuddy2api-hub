@@ -159,6 +159,8 @@ fi
 [ -f "$APP_SRC/wb_proxy.py" ] || {
 	echo "错误: $APP_SRC 里没有 wb_proxy.py（--app-src 应指向含 wb_*.py 的仓库根）" >&2; exit 1; }
 [ -f "$APP_SRC/dashboard.html" ] || { echo "错误: $APP_SRC 里没有 dashboard.html" >&2; exit 1; }
+[ -d "$APP_SRC/static/dashboard" ] || {
+	echo "错误: $APP_SRC 里没有 static/dashboard（看板 CSS/JS 已拆出，不能只打 dashboard.html）" >&2; exit 1; }
 DETECTED_VER="$(sed -n 's/.*server_version = "wb-proxy\/\([0-9.]*\)".*/\1/p' "$APP_SRC/wb_proxy.py" | head -n1)"
 MAKE_VER="$(mk_var "$REPO/openwrt/workbuddy2api/Makefile" PKG_VERSION)"
 [ -n "$DETECTED_VER" ] || {
@@ -196,6 +198,12 @@ for _f in "$APP_SRC"/wb_*.py; do
 	install_file "$_f" "$DATA" "usr/lib/workbuddy2api/$(basename "$_f")" 0644
 done
 install_file "$APP_SRC/dashboard.html" "$DATA" usr/lib/workbuddy2api/dashboard.html 0644
+# 看板拆出的静态资源：按目录遍历，新增 css/js 不会漏打包。
+while IFS= read -r _rel; do
+	install_file "$APP_SRC/static/$_rel" "$DATA" "usr/lib/workbuddy2api/static/$_rel" 0644
+done <<EOF
+$(cd "$APP_SRC/static" && find dashboard -type f | sort)
+EOF
 
 mkdir -p "$CTRL"
 write_control "$PKG/Makefile" workbuddy2api net feeds/base/workbuddy2api "" "$CTRL/control"

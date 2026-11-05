@@ -20,6 +20,7 @@ import unittest
 from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from _dashboard_source import dashboard_combined
 
 import wb_accounts
 import wb_proxy
@@ -274,9 +275,7 @@ class LoginProxyPanelTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        with open(os.path.join(root, "dashboard.html"), encoding="utf-8") as fh:
-            cls.html = fh.read()
+        cls.html = dashboard_combined()
 
     def test_default_option_is_direct(self):
         at = self.html.index('<select id="loginProxySlot"')

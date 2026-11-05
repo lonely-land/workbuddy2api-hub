@@ -13,13 +13,17 @@ services:
     # by that uid; see the README's Docker section.
     user: "${PUID:-0}:${PGID:-0}"
     ports:
-      # 宿主机端口:容器端口（右侧必须与下面的 PORT 保持一致）
-      - "8788:8788"
+      # 默认只绑宿主机回环：容器内仍监听 0.0.0.0，由这行决定谁能从宿主机外连进来。
+      # 需要局域网访问时改成 "8788:8788"（或 "0.0.0.0:8788:8788"），并确保
+      # accounts/settings.json 里不是默认面板密码（首次以 --lan 启动会自动生成并打印）。
+      - "127.0.0.1:8788:8788"
     environment:
       - HOST=0.0.0.0
       - PORT=8788
       # 留空则启动时自动生成高强度 API Key 写入 ./accounts/settings.json 并打印在启动日志中
       # - API_KEY=your_secret_key
+      # 可直接指定面板密码（等同 --panel-password）；留空则回环用 admin、对外监听首次自动生成
+      # - WB_PANEL_PASSWORD=your_panel_password
       - TZ=Asia/Shanghai
     volumes:
       # 持久化数据目录：升级与重建容器时绝不丢失配置与用量

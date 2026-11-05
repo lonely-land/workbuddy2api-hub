@@ -29,7 +29,7 @@ EGRESS_JITTER_HIGH = 1.25
 
 _lock = threading.Lock()
 #: egress_key -> [streak, last_hit_epoch]
-_state = {}
+_state: dict = {}
 
 
 def transient_backoff(streak):

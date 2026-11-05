@@ -13,14 +13,14 @@
  */
 'use strict';
 const assert = require('assert');
-const {dashboardHtml} = require('./_dashboard_source.js');
+const {dashboardCombined} = require('./_dashboard_source.js');
 const {loadDashboard} = require('./_dashboard_sandbox.js');
 
 // installDom() 会把 global.setTimeout 换成 no-op（面板启动时会挂轮询 interval，
 // 真定时器会把进程吊住）。要等异步落定的测试得自己先把平台定时器抓在手里。
 const PLATFORM_SET_TIMEOUT = setTimeout;
 
-const html = dashboardHtml();
+const html = dashboardCombined();
 
 let checks = 0;
 function check(label, ok, detail){

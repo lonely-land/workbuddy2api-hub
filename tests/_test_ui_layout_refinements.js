@@ -1,8 +1,8 @@
 /* 本轮 UI 修正的结构契约：账号告警/积分、用量明细列配置与单一滚动上下文。 */
 'use strict';
 const assert = require('assert');
-const {dashboardHtml, dashboardScript} = require('./_dashboard_source.js');
-const html = dashboardHtml();
+const {dashboardCombined, dashboardScript} = require('./_dashboard_source.js');
+const html = dashboardCombined();
 const script = dashboardScript();
 
 assert.ok(/\.cool-list\{display:flex;flex-direction:column/.test(html), '账号告警应纵向排列');

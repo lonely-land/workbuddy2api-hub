@@ -10,12 +10,13 @@
  * Run with Node: node tests/_test_panel_file_login.js
  */
 'use strict';
+const {dashboardCombined} = require('./_dashboard_source.js');
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
-const html = fs.readFileSync(path.join(__dirname, '..', 'dashboard.html'), 'utf8');
+const html = dashboardCombined();
 const start = html.indexOf('async function submitPanelLogin(){');
 assert.ok(start > 0, 'submitPanelLogin moved; update this test marker');
 const end = html.indexOf('\nasync function panelLogout()', start);

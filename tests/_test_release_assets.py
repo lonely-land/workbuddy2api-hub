@@ -245,6 +245,23 @@ class ManifestTests(unittest.TestCase):
         listed = set(tools.read_manifest())
         self.assertEqual([n for n in on_disk if n not in listed], [])
 
+    def test_dashboard_static_assets_are_listed(self):
+        """A CSS/JS file split out of dashboard.html must travel with it.
+
+        The page loads /static/dashboard/... from next to dashboard.html; a
+        package that ships the template but not the assets renders an unstyled
+        page with no interactions, which no gateway test would notice.
+        """
+        on_disk = sorted(
+            os.path.relpath(path, ROOT).replace(os.sep, "/")
+            for path in glob.glob(os.path.join(ROOT, "static", "dashboard", "**", "*"),
+                                  recursive=True)
+            if os.path.isfile(path))
+        self.assertTrue(on_disk, "static/dashboard 里没有文件？")
+        listed = set(tools.read_manifest())
+        self.assertEqual([p for p in on_disk if p not in listed], [])
+
+
     def test_launchers_and_dashboard_are_listed(self):
         listed = tools.read_manifest()
         for name in ("dashboard.html", "console_tail.py", "wb_proxy.py", "README.md", "LICENSE",

@@ -81,7 +81,7 @@ _index = None            # bare id -> (context, output)
 _index_loaded = False
 _last_fetch = 0.0
 _fetching = False
-_negatives = {}
+_negatives: dict = {}
 
 
 def cache_path(directory):

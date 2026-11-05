@@ -1,3 +1,4 @@
+const {dashboardCombined} = require('./_dashboard_source.js');
 /* 看板主题菜单：内联处理器必须真的能点。
  *
  * 回归背景：主题代码整块包在 head 的 IIFE 里，而 `window.selectTheme` /
@@ -21,11 +22,13 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const html = fs.readFileSync(path.join(__dirname, '..', 'dashboard.html'), 'utf8');
+const html = dashboardCombined();
 
-// 首帧布局默认控制台；显式经典偏好与新导航始终优先。
-const layoutSource = html.match(/<script>\s*(var defaultConsoleLayout[\s\S]*?)<\/script>/);
-assert.ok(layoutSource, '缺少首帧布局初始化');
+// 首帧布局默认控制台；显式经典偏好与新导航始终优先。脚本已拆到静态资源，
+// 这里直接读那一个启动脚本（它必须是 head 里第一段执行的页面脚本）。
+const layoutSource = [null, fs.readFileSync(path.join(
+  __dirname, '..', 'static', 'dashboard', 'js', '01-console-layout-boot.js'), 'utf8')];
+assert.ok(layoutSource[1], '缺少首帧布局初始化');
 function firstLayout(saved, next, blocked) {
   const attrs = {}, sheets = {'wb-alibaba-console': {}, 'wb-console-v2': {}};
   const document = {documentElement: {setAttribute: (k,v) => { attrs[k] = v; }}, getElementById: id => sheets[id]};

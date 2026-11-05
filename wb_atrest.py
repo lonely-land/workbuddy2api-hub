@@ -422,7 +422,7 @@ _SECRET_PATTERNS = (
     (re.compile(rb"(?<![A-Za-z0-9+/]\x00)(?:[A-Za-z0-9+/]\x00){43}=\x00(?![A-Za-z0-9+/=]\x00)"), True),
 )
 
-_WIN32 = {}
+_WIN32: dict = {}
 
 
 def _win32():

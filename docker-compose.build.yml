@@ -7,11 +7,13 @@ services:
     container_name: wb-proxy
     restart: unless-stopped
     ports:
-      - "8788:8788"
+      # 默认只绑宿主机回环；需要局域网访问时改成 "8788:8788"。
+      - "127.0.0.1:8788:8788"
     environment:
       - HOST=0.0.0.0
       - PORT=8788
       # - API_KEY=your_secret_key
+      # - WB_PANEL_PASSWORD=your_panel_password
       - TZ=Asia/Shanghai
     volumes:
       - ./accounts:/app/accounts

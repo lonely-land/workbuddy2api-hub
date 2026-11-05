@@ -1,3 +1,4 @@
+const {dashboardCombined} = require('./_dashboard_source.js');
 /* 一键刷新凭证：账号工具栏的批量按钮，等价于对每个账号点一次「刷新凭证」。
  *
  * 后端 /accounts/refresh 早先就支持不带 uid 时刷新整池，但看板上只有单账号的
@@ -12,7 +13,7 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const html = fs.readFileSync(path.join(__dirname, '..', 'dashboard.html'), 'utf8');
+const html = dashboardCombined();
 
 const start = html.indexOf('async function refreshAccounts');
 const end = html.indexOf('async function setAll');

@@ -68,7 +68,7 @@ This project is for protocol research and personal use only. Prefer the official
 - **macOS / Linux**：双击 `start-wb-proxy.command` 或在终端执行 `./start-wb-proxy.sh [端口]`（默认 8788，需要 Python 3.9+）。
 - **局域网共享模式**：运行 `start-wb-proxy-lan.bat`（Windows）或 `./start-wb-proxy-lan.sh`（macOS/Linux），首次启动将自动生成高强度 API Key 并在控制台打印。
 - 启动后访问：
-  - **Web 看板**：`http://127.0.0.1:8788/`（默认访问密码 `admin`，首次登录请在设置中修改）
+  - **Web 看板**：`http://127.0.0.1:8788/`。本机回环 / local（`127.0.0.1`、`localhost`）沿用历史默认密码 `admin`，登录后请在设置中修改。局域网或 Docker 首次启动若仍是默认密码，会自动生成随机面板密码，并只在启动日志里打印一次（容器用 `docker logs` 查看）。
   - **API 地址**：`http://127.0.0.1:8788/v1`
 
 ### 2. Docker 部署
@@ -96,7 +96,8 @@ services:
     container_name: wb-proxy
     restart: unless-stopped
     ports:
-      - "8788:8788"
+      # 默认只发布到宿主机回环；局域网访问改成 "8788:8788"
+      - "127.0.0.1:8788:8788"
     environment:
       - HOST=0.0.0.0
       - PORT=8788
@@ -107,6 +108,10 @@ services:
 ```
 
 更新镜像：`docker compose pull && docker compose up -d`。
+
+仓库自带的 `docker-compose.yml` 与本示例默认只把 8788 发布到宿主机 `127.0.0.1`；需要局域网 / 其他设备访问时，把 `ports` 改成 `"8788:8788"`，并先通过 `WB_PANEL_PASSWORD` 指定面板密码（或从首次启动日志里取自动生成的随机密码）。一键脚本默认 `WB_DEPLOY_MODE=lan`，只在本机使用时可用 `WB_DEPLOY_MODE=local` 收紧到回环。
+
+容器监听 `0.0.0.0`：首次启动若面板仍是默认密码，随机密码只出现在启动日志里，用 `docker logs wb-proxy` 查看。本机只监听回环时仍是 `admin`。
 
 ### 3. 启动入口：优先用 `-m`
 
@@ -176,6 +181,7 @@ export ANTHROPIC_API_KEY="你在看板设置中添加并绑定的API_Key"
 | 环境变量 | 默认值 | 说明 |
 |---|---|---|
 | `PORT` | `8788` | 网关监听端口 |
+| `WB_PANEL_PASSWORD` | 留空 | 启动时设置 Web 面板密码（等同 `--panel-password`）。留空时本机回环仍用默认 `admin`；监听局域网 / Docker 且仍是默认密码时，首次自动生成并在启动日志打印一次 |
 | `API_KEY` | 自动生成 | 初始 API Key（看板配置多 Key 后优先由看板管理） |
 | `WB_DEPLOY_MODE` | `lan` | 部署模式：`lan`（0.0.0.0）、`local`（127.0.0.1）、`public` |
 | `WB_MAX_PAYLOAD_BYTES` | `16777216` | 单请求体上限（字节，默认 16MB，支持 1–256 MB） |
@@ -214,7 +220,8 @@ python tests/run_all.py            # 全部套件
 python tests/run_all.py realm      # 只跑名字里含 realm 的
 ```
 
-- 270 个套件：203 个 Python + 67 个 JS；JS 需要 PATH 上有 `node`，缺失时会跳过并提示。
+- 274 个套件：206 个 Python + 68 个 JS；JS 需要 PATH 上有 `node`，缺失时会跳过并提示。
+- 类型检查：`python -m mypy`（配置见 `mypy.ini`，按 Python 3.9 口径检查 36 个 `wb_*.py`；本地可用 `uvx --python 3.12 'mypy==1.13.0'`）。
 - `tests/_mobile_check.py` 是独立的 Playwright 手机/桌面布局检查器（需自行安装 Playwright），按需手动运行，不在上面的套件集里。
 - CI（`.github/workflows/tests.yml`）跑同一条命令：Ubuntu 上 python 3.9 与 3.12（3.9 是本项目声称的最低版本），Windows 上 python 3.12；推送 `v*` tag 时额外断言 **tag == 源码版本**（`-ci` 演练 tag 豁免）。
 
@@ -224,6 +231,14 @@ python tests/run_all.py realm      # 只跑名字里含 realm 的
 
 ### Unreleased
 
+- **引入 mypy 类型检查**：`mypy.ini` 按 Python 3.9 口径检查 36 个 `wb_*.py`；顺带清掉重复定义的 `_acquire_key_slot` / `_release_key_slot` 与重复的 `NON_ACCOUNT_FILES`，修掉 `exc` 越界赋值等静态问题，运行时行为不变。
+- **看板拆成 HTML 模板 + 静态 CSS/JS**：`dashboard.html` 从 21,492 行降到约 2,700 行，样式与脚本按原始顺序拆到 `static/dashboard/{css,js}/`（保留 `wb-alibaba-console` / `wb-console-v2` / `nextStyles` 的 id 与 media）；网关新增 `/static/dashboard/` 路由（路径逃逸防护、ETag/304、no-cache、正确 MIME）。看板外观与交互不变，测试改为从模板 + 静态资源读取源码。
+- **发布包纳入看板静态资源**：Dockerfile、便携包 `release/portable.txt`、OpenWrt ipk/apk 都带上 `static/dashboard/`；release 资产测试新增静态文件完整性断言，漏打包会直接红。
+- **修复账号昵称的存储型 XSS**：用量看板的账号 / 模型 / API Key 表格在拼 `innerHTML` 前对服务端字段做 HTML 转义；导入带 HTML 的昵称或 Key 名不再执行脚本，正常名称显示不变。
+- **访问日志不再明文记录 URL 查询串中的密钥**：`?key=`、`?api_key=`、`?api-key=`（大小写不敏感）的值在写入 stderr 与日志库前替换为 `***`，路径和其它参数不变；看板心跳静默规则不变。
+- **Docker 默认只发布到宿主机回环**：仓库自带的 `docker-compose.yml` / `docker-compose.build.yml` 把 8788 绑到 `127.0.0.1`；需要局域网访问时改成 `"8788:8788"` 并设置面板密码。容器内仍监听 `0.0.0.0`。
+- **局域网 / Docker 不再沿用默认面板密码**：监听非回环地址且仍是 `admin` 时，首次启动生成随机密码并只在启动日志打印一次（容器用 `docker logs`）；本机回环仍用 `admin`，请在设置中修改。可用 `--panel-password` 或 `WB_PANEL_PASSWORD` 指定；缺少 `hashlib.pbkdf2_hmac` 时拒绝以默认密码对外启动。
+- **凭证文件改为仅属主可读**：账号 token 与 API key 仍以明文 JSON 保存，但账号目录收成 0700、凭证文件收成 0600；已有 0644 的账号档在下次启动时自动收紧。Windows 等不支持该权限位的环境会跳过，不影响启动。
 - **账号多时面板更顺**：账号表改为客户端分页（每页 50 个，排序与筛选作用在全部账号上再切页；改区域 / 改筛选 / 点表头回第 1 页，账号变少时页码夹回最后一页）；15 秒账号轮询拿回的数据与视图都没变时不再整表重画，且只在显示账号数据的页签（网关、账号、任务，新导航的总览）上跑，切回这些页签时立即拉一次；自动补积分改为只点名缺积分的号（`POST /accounts/credits` 新增 `uids` 列表参数，非列表回 400），每个号每次页面加载最多补一次，不再触发全池逐个刷。手动「一键刷新积分」不变。
 - 移除已废弃的 `WB_DEEPSEEK_FLASH_FORCE_SG` 文档行与两个恒返回 `False` 的存根函数（#776）。
 - **CodeArts 模型倍率**：`/v1/models?realm=codearts` 的条目新增 `credits`（如 `x0.7`，与 WorkBuddy 目录同一写法），取自上游模型目录的标准档；错峰优惠档不计入，上游没有倍率的模型不带此字段。

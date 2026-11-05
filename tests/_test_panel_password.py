@@ -7,6 +7,7 @@ to "admin" restores the default state.
 
     python tests/_test_panel_password.py
 """
+import json
 import os
 import shutil
 import sys
@@ -87,6 +88,38 @@ class PanelPasswordTests(unittest.TestCase):
         data["panel_password_salt"] = "not_a_valid_hex_string"
         wb_settings.save(self.directory, data)
         self.assertFalse(wb_settings.verify_panel_password(self.directory, "secret123"))
+
+    def test_network_default_is_replaced_once(self):
+        password = wb_settings.ensure_network_panel_password(self.directory)
+        self.assertIsInstance(password, str)
+        self.assertGreaterEqual(len(password), 20)
+        self.assertNotEqual(password.lower(), "admin")
+        self.assertFalse(wb_settings.verify_panel_password(self.directory, "admin"))
+        self.assertTrue(wb_settings.verify_panel_password(self.directory, password))
+        self.assertFalse(wb_settings.panel_password_is_default(self.directory))
+        data = wb_settings.load(self.directory)
+        self.assertNotIn(password, json.dumps(data))
+        self.assertIsNone(wb_settings.ensure_network_panel_password(self.directory))
+        self.assertTrue(wb_settings.verify_panel_password(self.directory, password))
+
+    def test_custom_password_is_not_replaced(self):
+        wb_settings.set_panel_password(self.directory, "secret123")
+        self.assertIsNone(wb_settings.ensure_network_panel_password(self.directory))
+        self.assertTrue(wb_settings.verify_panel_password(self.directory, "secret123"))
+        self.assertFalse(wb_settings.panel_password_is_default(self.directory))
+
+
+class BindExposureTests(unittest.TestCase):
+    def test_loopback_is_private_and_other_binds_are_exposed(self):
+        import wb_proxy
+        exposed = wb_proxy._bind_is_network_exposed
+        self.assertFalse(exposed("127.0.0.1"))
+        self.assertFalse(exposed("::1"))
+        self.assertFalse(exposed("localhost"))
+        self.assertFalse(exposed(""))
+        self.assertTrue(exposed("0.0.0.0"))
+        self.assertTrue(exposed("::"))
+        self.assertTrue(exposed("192.168.1.20"))
 
 
 if __name__ == "__main__":

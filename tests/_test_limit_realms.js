@@ -9,9 +9,9 @@
  * 出来。所以这里把两侧的名字和语义都钉住。Run with Node.
  */
 const assert = require('assert');
-const {dashboardHtml, dashboardScript} = require('./_dashboard_source.js');
+const {dashboardCombined, dashboardCss, dashboardScript} = require('./_dashboard_source.js');
 
-const html = dashboardHtml();
+const html = dashboardCombined();
 const script = dashboardScript();
 
 // One shared fake DOM for every dashboard suite: tests/_dom_stub.js.
@@ -98,8 +98,7 @@ const api = new Function(script + `
   // 护栏名与说明占整块那条规则：按选择器与声明的意义找，不比对一条写死的 CSS 文本，
   // 所以空白、声明顺序、多余声明都不影响；而选择器不再指向限额表的 limit-name 格、
   // 或 display 不再是 block 时，就必须失败。
-  const cssText = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)]
-    .map(match => match[1]).join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
+  const cssText = dashboardCss().replace(/\/\*[\s\S]*?\*\//g, '');
   const cssRules = [...cssText.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
     .map(match => ({selector: match[1].trim(), body: match[2]}));
 

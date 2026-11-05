@@ -55,7 +55,7 @@ MAX_AGE = 30 * 86400
 
 _lock = threading.RLock()
 _run_lock = threading.Lock()
-_state = {"dir": None, "scans": {}}
+_state: dict = {"dir": None, "scans": {}}
 
 
 # --------------------------------------------------------------- 状态存取

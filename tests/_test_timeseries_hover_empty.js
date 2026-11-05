@@ -1,3 +1,4 @@
+const {dashboardCombined} = require('./_dashboard_source.js');
 /* The Token time-series tooltip must survive an empty series.
  *
  *   node tests/_test_timeseries_hover_empty.js
@@ -17,7 +18,7 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const html = fs.readFileSync(path.join(__dirname, '..', 'dashboard.html'), 'utf8');
+const html = dashboardCombined();
 
 /** The source between "cv.onmousemove =" and its matching closing brace. */
 function hoverSource() {

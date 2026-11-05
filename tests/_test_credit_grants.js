@@ -15,7 +15,7 @@
 'use strict';
 
 const assert = require('assert');
-const {dashboardHtml, dashboardScript} = require('./_dashboard_source.js');
+const {dashboardCombined, dashboardScript} = require('./_dashboard_source.js');
 
 // One shared fake DOM for every dashboard suite: tests/_dom_stub.js.
 const dom = require('./_dom_stub.js');
@@ -27,7 +27,7 @@ const check = (label, cond, extra) => {
 };
 
 // ---- 1. 页面里真的有这个区块与整行表头 -------------------------------------
-const html = dashboardHtml();
+const html = dashboardCombined();
 check('区块容器在页面里', html.includes('id="creditGrantsSection"'));
 check('表体在页面里', html.includes('id="creditGrantsTbody"'));
 check('整行表头与列序在页面里',

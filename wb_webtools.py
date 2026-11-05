@@ -185,7 +185,7 @@ class _TTLCache(object):
 _CACHE = _TTLCache()
 
 _INFLIGHT_LOCK = threading.Lock()
-_INFLIGHT = {}
+_INFLIGHT: dict = {}
 
 
 def _single_flight(key):
@@ -649,7 +649,7 @@ def _chain_for(query):
 # ---------------------------------------------------------------------------
 
 _ENGINE_STATE_LOCK = threading.Lock()
-_ENGINE_STATE = {}
+_ENGINE_STATE: dict = {}
 
 
 def _cooling(name):

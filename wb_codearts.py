@@ -784,7 +784,7 @@ class CodeArtsPool(object):
         pool.sort(key=lambda a: (a.active_concurrent, a.last_used or 0))
         return pool[0]
 
-    _affinity = {}
+    _affinity: dict = {}
 
     def bind_session(self, session_key, uid):
         if not session_key or not uid:
@@ -830,7 +830,7 @@ class CodeArtsPool(object):
         self.save_state()
 
 
-_POOLS = {}
+_POOLS: dict = {}
 _POOLS_LOCK = threading.Lock()
 
 
@@ -865,7 +865,7 @@ def invalidate_pool(accounts_dir=None):
 # HTTP
 # ---------------------------------------------------------------------------
 
-_OPENER_CACHE = {}
+_OPENER_CACHE: dict = {}
 _OPENER_LOCK = threading.Lock()
 _DIRECT_OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
@@ -2064,7 +2064,7 @@ def open_chat(config, body, session_key=None, allowed_accounts=None):
 # ---------------------------------------------------------------------------
 
 _OAUTH_LOCK = threading.RLock()
-_OAUTH_SESSIONS = {}
+_OAUTH_SESSIONS: dict = {}
 _OAUTH_TTL_SECONDS = OAUTH_TTL
 
 
@@ -2745,7 +2745,7 @@ def _is_checkin_campaign(item):
                or "").lower() == "user.login"
 
 
-_CHECKIN_LOCKS = {}
+_CHECKIN_LOCKS: dict = {}
 _CHECKIN_LOCKS_LOCK = threading.Lock()
 
 
@@ -2891,7 +2891,7 @@ AUTO_CHECKIN_RETRY_GAP = 3600.0
 
 _AUTO_CHECKIN_LOCK = threading.Lock()
 #: {accounts_dir: {uid: [日期, 已尝试次数, 上次尝试时刻]}}
-_AUTO_CHECKIN_STATE = {}
+_AUTO_CHECKIN_STATE: dict = {}
 
 
 def _checked_in_today(acct, today):
